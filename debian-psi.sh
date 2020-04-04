@@ -6,7 +6,7 @@
 # debian-fpi.sh file
 # For Debian GNU/Linux 10.2.0/10.3.0 (buster) desktop amd64
 #
-appTitle="Debian Fast Post-Installer Setup v20200404.0-alpha (Early Build)"
+appTitle="Debian Fast Post-Installer Setup v20200404.1-alpha (Early Build)"
 
 #
 # text formatting codes
@@ -49,7 +49,9 @@ root(){
 	options+=("${txtextras}" "${txtextrasdesc}")
 	options+=("${txtvirtualization}" "${txtvirtualizationdesc}")
 	options+=("" "")
-	options+=("${txtreboot}" "(Shutdown the computer and then start it up again)")
+	options+=("${txtfixes}" "${txtfixesdesc}")
+	options+=("" "")
+	options+=("${txtreboot}" "${txtrebootdesc}")
 	sel=$(whiptail --backtitle "${appTitle}" --title "${txtmainmenu}" --menu "" --cancel-button "${txtexit}" --default-item "${nextitem}" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
@@ -61,15 +63,19 @@ root(){
 			;;
 			"${txtbase}")
 				baseSetup
-				nextitem="."
+				nextitem="${txtextras}"
 			;;
 			"${txtextras}")
 				extrasSetup
-				nextitem="."
+				nextitem="${txtfixes}"
 			;;
 			"${txtvirtualization}")
 				virtualizationSetup
 				nextitem="."
+			;;
+			"${txtfixes}")
+				fixesSetup
+				nextitem="${txtreboot}"
 			;;
 			"${txtreboot}")
 				reboot
@@ -85,7 +91,7 @@ root(){
 reboot(){
 	if (whiptail --backtitle "${appTitle}" --title "${txtreboot}" --yesno "${txtreboot} ?" --defaultno 0 0) then
 		clear
-		reboot
+		sudo reboot
 	fi
 }
 
@@ -187,18 +193,18 @@ extrasSetup(){
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_gaming}" ]; then
-			apt install -yy steam lutris pcsx2
+			apt update && apt install -yy steam pcsx2
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_multimedia}" ]; then
-			apt install gimp vlc vlc-data
+			apt install -yy gimp vlc vlc-data spotify-client
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_nvidia}" ]; then
     			while true; do
         			read -p "Do you want to install the drivers for your NVIDIA graphics card (if any)? (reboot required): " input
         			case $input in
-            				[Yy]* ) sleep 2; sudo apt install -y nvidia-driver; echo -e; break;;
+            				[Yy]* ) sleep 2; sudo apt install -yy nvidia-driver; echo -e; break;;
             				[Nn]* ) break;;
             				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
         			esac
@@ -269,7 +275,7 @@ options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtvirtualizationsetup_aptsourcelist}" ]; then
-			echo -n "Generating new APT sources file..."; printf '#
+			printf '#
 # DEBIAN REPOSITORIES
 #
 # main repository
@@ -287,7 +293,8 @@ deb-src http://deb.debian.org/debian/ buster-backports main contrib non-free
 #
 # THIRD-PARTY REPOSITORIES
 #
-deb http://repository.spotify.com stable non-free' > /etc/apt/sources.list
+deb http://repository.spotify.com stable non-free' > /etc/apt/sources.list &&
+			curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add -
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtvirtualizationsetup_updategrub}" ]; then
@@ -297,6 +304,26 @@ deb http://repository.spotify.com stable non-free' > /etc/apt/sources.list
 
 		elif [ "${sel}" = "${txtvirtualizationsetup_updateinitramfs}" ]; then
 			update-initramfs -u -k all
+			pressanykey
+			nextitem="."
+		fi
+	fi
+}
+
+fixesSetup(){
+	options=()
+	options+=("${txtfixes_fixwiredunmanaged}" "${txtfixes_fixwiredunmanageddesc}")
+	sel=$(whiptail --backtitle "${appTitle}" --title "${txtfixes}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
+		"${options[@]}" \
+		3>&1 1>&2 2>&3)
+	if [ "$?" = "0" ]; then
+		clear
+		if [ "${sel}" = "${txtextrassetupx86_packages}" ]; then
+			printf '[main]
+plugins=keyfile,ifupdown
+
+[ifupdown]
+managed=true' > /etc/NetworkManager/NetworkManager.conf
 			pressanykey
 			nextitem="."
 		fi
@@ -352,11 +379,17 @@ loadstrings_us(){
 	txtvirtualizationsetup_backupsysfiles="2.- Backup system files"
 	txtvirtualizationsetup_enableiommu="3.- Enable IOMMU"
 	txtvirtualizationsetup_enablenested="4.- Enable Nested Virtualization"
-	txtvirtualizationsetup_aptsourcelist="5.- Create APT sources.list file"
-	txtvirtualizationsetup_updategrub="6.- Update GRUB config file"
-	txtvirtualizationsetup_updateinitramfs="7.- Update boot files"
+	txtvirtualizationsetup_aptsourcelist="5.- Create APT sources.list File"
+	txtvirtualizationsetup_updategrub="6.- Update GRUB Config File"
+	txtvirtualizationsetup_updateinitramfs="7.- Update Boot Files"
+	
+	txtfixes="Fixes"
+	txtfixesdesc="(Common Fixes for Debian)"
+	txtfixes_fixwiredunmanaged="Fix Wired Unmanaged"
+	txtfixes_fixwiredunmanageddesc=""
 
 	txtreboot="Reboot"
+	txtrebootdesc="(Shutdown the computer and then start it up again)"
 
 	txttestedworking="Tested and working"
 	txtnottestedyet="Not tested yet"
@@ -414,6 +447,7 @@ loadstrings_es(){
 	txtvirtualizationsetup_updateinitramfs="7.- Actualizar archivos de arranque"
 
 	txtreboot="Reiniciar"
+	txtrebootdesc="(Apaga el ordenador y entonces inicíalo otra vez)"
 
 	txttestedworking="Probado y funcionando"
 	txtnottestedyet="Aún sin probar"
