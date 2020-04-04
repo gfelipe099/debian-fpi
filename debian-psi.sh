@@ -318,7 +318,7 @@ fixesSetup(){
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
 		clear
-		if [ "${sel}" = "${txtextrassetupx86_packages}" ]; then
+		if [ "${sel}" = "${txtfixes_fixwiredunmanaged}" ]; then
 			printf '[main]
 plugins=keyfile,ifupdown
 
