@@ -126,7 +126,7 @@ baseSetup(){
 			fallocate -l 4G /swapfile
 			chmod 0600 /swapfile
 			mkswap -L swap /swapfile
-			swapon swapfile
+			swapon /swapfile
 			echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
 			pressanykey
 			nextitem="."
@@ -134,7 +134,7 @@ baseSetup(){
 			fallocate -l 8G /swapfile
 			chmod 0600 /swapfile
 			mkswap -L swap /swapfile
-			swapon swapfile
+			swapon /swapfile
 			echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
 			pressanykey
 			nextitem="."
@@ -168,8 +168,8 @@ extrasSetup(){
 	options+=("${txtextrassetup_bsystools}" "(Required to install Spotify)")
 	options+=("${txtextrassetup_webbrowser}" "(Installs Firefox ESR)")
 	options+=("${txtextrassetup_officesuite}" "(Installs LibreOffice)")
-	options+=("${txtextrassetup_gaming}" "(Installs Steam, Lutris and PCSX2)")
-	options+=("${txtextrassetup_multimedia}" "(Installs GIMP and VLC)")
+	options+=("${txtextrassetup_gaming}" "(Installs Steam and PCSX2)")
+	options+=("${txtextrassetup_multimedia}" "(Installs GIMP and Spotify)")
 	options+=("${txtextrassetup_nvidia}" "(Installs NVIDIA propietary drivers)")
 	sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
 		"${options[@]}" \
@@ -177,7 +177,8 @@ extrasSetup(){
 	if [ "$?" = "0" ]; then
 		clear
 		if [ "${sel}" = "${txtextrassetupx86_packages}" ]; then
-			dpkg --add-architecture i386 && apt update
+			dpkg --add-architecture i386 &&
+			apt update
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_bsystools}" ]; then
@@ -193,11 +194,15 @@ extrasSetup(){
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_gaming}" ]; then
-			apt update && apt install -yy steam pcsx2
+			apt update &&
+			apt install -yy steam pcsx2
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_multimedia}" ]; then
-			apt install -yy gimp vlc vlc-data spotify-client
+			curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add - &&
+			echo "deb http://repository.spotify.com stable non-free" > /etc/apt/sources.list
+			apt update &&
+			apt install -yy gimp spotify-client
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_nvidia}" ]; then
@@ -294,7 +299,6 @@ deb-src http://deb.debian.org/debian/ buster-backports main contrib non-free
 # THIRD-PARTY REPOSITORIES
 #
 deb http://repository.spotify.com stable non-free' > /etc/apt/sources.list &&
-			curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add -
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtvirtualizationsetup_updategrub}" ]; then
