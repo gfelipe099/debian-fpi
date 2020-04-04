@@ -323,7 +323,8 @@ fixesSetup(){
 plugins=keyfile,ifupdown
 
 [ifupdown]
-managed=true' > /etc/NetworkManager/NetworkManager.conf
+managed=true' > /etc/NetworkManager/NetworkManager.conf &&
+			systemctl restart NetworkManager
 			pressanykey
 			nextitem="."
 		fi
