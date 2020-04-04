@@ -1,44 +1,11 @@
-# archfi
-
-Just a simple bash script wizard to install Arch Linux after you have booted on the official Arch Linux install media.
-
-With this script, you can install Arch Linux with two simple terminal commands.
-
-This wizard is made to install minimum packages (Base, bootloader and optionally archdi).
-
-At the end of this wizard, you can install or launch [archdi](https://github.com/MatMoul/archdi) (Arch Linux Desktop Install) to install and configure desktop packages.
-
-You can watch my videos to see how to use it [here](https://www.youtube.com/playlist?list=PLytHgIKLV1caHlCrcTSkm5OF2WSVI1_Sq).
+# debian-fpi
+A modified version of archfi for Debian, which I called Debian Fast Post-Installer, or Debian FPI, where you can install a desktop enviroment (currently GNOME and KDE Plasma (under testing)); tools, drivers, applications and the ability to setup virtualization stuff.
 
 ## How to use
+Just clone it using:
+> git clone https://github.com/gfelipe099/debian-fpi
 
-First, boot with the [last Arch Linux image](https://www.archlinux.org/download/) with a [bootable device](https://wiki.archlinux.org/index.php/USB_flash_installation_media).
+And then execute it using:
+> sudo ./debian-fpi.sh
 
-Then make sure you have Internet connection on the Arch iso. If you have a wireless connection the `wifi-menu` command might be useful to you. You can also read the [Network configuration](https://wiki.archlinux.org/index.php/Network_configuration) from the Arch Linux guide for more detailed instructions.
-
-Then download the script with from the command line:
-
-    wget archfi.sf.net/archfi
-
-If SourceForge is down, use this instead:
-
-    wget matmoul.github.io/archfi
-
-Finally, launch the script:
-
-    sh archfi
-
-Then follow the on-screen instructions to completion.
-
-If you require extra help, visit the provided video playlist and follow my example.
-
-
-## For developers
-
-You can test your script with this command :
-
-    sh archfi -t {githubusername} {branchname}
-
-Example :
-
-    sh archfi -t matmoul master
+Sudo permissions are required, because it modifies system related stuff. Although, **do not use this script in your daily driver machine until it's declared stable**.
