@@ -6,8 +6,10 @@ There are a few requirements which you have to do in order to use this script co
 
 You explicitly need:
 > Disallow, not use or disable the root account upon the installation or the script will fail in some areas.
+
 > To allow the use of non-free and contrib software.
-> Deselect everything from the tasksel part: Debian desktop enviroment, printer software and basic system utilities. The script will handle that after.
+
+> Deselect everything from the tasksel part: Debian desktop enviroment, printer software and basic system utilities. The script will handle that after. <
 
 ## How to use
 Clone the repository:
