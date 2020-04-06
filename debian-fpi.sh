@@ -318,8 +318,22 @@ GRUB_CMDLINE_LINUX=""
 		while true; do
         			read -p "Before enabling Nested Virtualization, from which brand is your CPU? [intel/amd]: " input
         			case $input in
-            				[intel]* ) ; break;;
-            				[amd]* )  ; break;;
+            				[intel]* ) echo "printf 'options kvm_intel nested=1
+options kvm-intel enable_shadow_vmcs=1
+options kvm-intel enable_apicv=1
+options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf"
+			printf 'options kvm_intel nested=1
+options kvm-intel enable_shadow_vmcs=1
+options kvm-intel enable_apicv=1
+options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf; break;;
+            				[amd]* )  echo "printf 'options kvm_amd nested=1
+options kvm-amd enable_shadow_vmcs=1
+options kvm-amd enable_apicv=1
+options kvm-amd ept=1' > /etc/modprobe.d/kvm.conf"
+			printf 'options kvm_intel nested=1
+options kvm-amd enable_shadow_vmcs=1
+options kvm-amd enable_apicv=1
+options kvm-amd ept=1' > /etc/modprobe.d/kvm.conf; break;;
             				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
         			esac
     			done
