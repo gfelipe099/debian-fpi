@@ -210,9 +210,9 @@ extrasSetup(){
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_multimedia}" ]; then
-			echo curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add - &&
+			echo curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add -
 			echo "deb http://repository.spotify.com stable non-free" >> /etc/apt/sources.list
-			curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add - &&
+			curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add -
 			apt update &&
 			apt install -yy gimp spotify-client
 			pressanykey
@@ -315,14 +315,14 @@ GRUB_CMDLINE_LINUX=""
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtvirtualizationsetup_enablenested}" ]; then
-			echo "printf 'options kvm_intel nested=1
-options kvm-intel enable_shadow_vmcs=1
-options kvm-intel enable_apicv=1
-options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf"
-			printf 'options kvm_intel nested=1
-options kvm-intel enable_shadow_vmcs=1
-options kvm-intel enable_apicv=1
-options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf
+		while true; do
+        			read -p "Before enabling Nested Virtualization, from which brand is your CPU? [intel/amd]: " input
+        			case $input in
+            				[intel]* ) ; break;;
+            				[amd]* )  ; break;;
+            				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
+        			esac
+    			done
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtvirtualizationsetup_aptsourcelist}" ]; then
@@ -375,7 +375,7 @@ deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' > /e
 			nextitem="."
 		elif [ "${sel}" = "${txtvirtualizationsetup_cpupinning}" ]; then
     			while true; do
-        			read -p "Before doing CPU Pinning, from which brand is your CPU of? [intel/amd]: " input
+        			read -p "Before doing CPU Pinning, from which brand is your CPU? [intel/amd]: " input
         			case $input in
             				[intel]* ) echo "printf '# If you change this file, run 'update-grub' afterwards to update
 # /boot/grub/grub.cfg.
@@ -568,7 +568,7 @@ loadstrings_us(){
 	txtvirtualizationsetup_aptsourcelist="5.- Create APT sources.list File"
 	txtvirtualizationsetup_updategrub="6.- Update GRUB Config File"
 	txtvirtualizationsetup_updateinitramfs="7.- Update Boot Files"
-	txtvirtualizationsetup_cpupinning="(8.- CPU Pinning (w/o HT))"
+	txtvirtualizationsetup_cpupinning="8.- CPU Pinning (w/o HT)"
 	
 	txtfixes="Fixes"
 	txtfixesdesc="(Common Fixes for Debian)"
@@ -632,7 +632,7 @@ loadstrings_es(){
 	txtvirtualizationsetup_aptsourcelist="5.- Crear archivo sources.list de APT"
 	txtvirtualizationsetup_updategrub="6.- Actualizar archivo de configuración GRUB"
 	txtvirtualizationsetup_updateinitramfs="7.- Actualizar archivos de arranque"
-	txtvirtualizationsetup_cpupinning="(8.- CPU Pinning (sin HT))"
+	txtvirtualizationsetup_cpupinning="8.- CPU Pinning (sin HT)"
 	
 	txtfixes="Arreglos"
 	txtfixesdesc="(Arreglos comunes para Debian)"
