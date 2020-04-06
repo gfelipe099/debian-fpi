@@ -6,7 +6,7 @@
 # debian-fpi.sh file
 # For Debian GNU/Linux 10.2.0/10.3.0 (buster) desktop amd64
 #
-appTitle="Debian Fast Post-Installer Setup v20200404.1-alpha (Early Build)"
+appTitle="Debian Fast Post-Installer Setup v20200406.2-alpha (Early Build)"
 
 #
 # text formatting codes
@@ -98,7 +98,7 @@ reboot(){
 changeLanguage(){
 	options=()
 	options+=("${lang_us}" "${langdesc}")
-	options+=("${lang_es}" "${langdesc}")
+	options+=("${lang_es}, WIP" "${langdesc}")
 	sel=$(whiptail --backtitle "${appTitle}" --title "${txtlanguage}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
@@ -177,30 +177,42 @@ extrasSetup(){
 	if [ "$?" = "0" ]; then
 		clear
 		if [ "${sel}" = "${txtextrassetupx86_packages}" ]; then
+			echo dpkg --add-architecture i386
+			echo apt update
 			dpkg --add-architecture i386 &&
 			apt update
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_bsystools}" ]; then
+			echo apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gedit gcc make perl curl linux-headers-$(uname -r)
 			apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gedit gcc make perl curl linux-headers-$(uname -r)
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_webbrowser}" ]; then
+			echo apt install -yy firefox-esr
 			apt install -yy firefox-esr
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_officesuite}" ]; then
+			echo apt install -yy libreoffice
 			apt install -yy libreoffice
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_gaming}" ]; then
+			echo "echo 'deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' >> /etc/apt/sources.list"
+			echo wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_10/Release.key -O- | sudo apt-key add -
+			echo apt update
+			echo apt install -yy steam pcsx2 lutris
+			echo "deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./" >> /etc/apt/sources.list
+			wget https://download.opensuse.org/repositories/home:/strycore/Debian_10/Release.key -O- | sudo apt-key add -
 			apt update &&
-			apt install -yy steam pcsx2
+			apt install -yy steam pcsx2 lutris
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_multimedia}" ]; then
+			echo curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add - &&
+			echo "deb http://repository.spotify.com stable non-free" >> /etc/apt/sources.list
 			curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add - &&
-			echo "deb http://repository.spotify.com stable non-free" > /etc/apt/sources.list
 			apt update &&
 			apt install -yy gimp spotify-client
 			pressanykey
@@ -229,22 +241,52 @@ virtualizationSetup(){
 	options+=("${txtvirtualizationsetup_aptsourcelist}" "(Creates a new and clean APT sources.list file)")
 	options+=("${txtvirtualizationsetup_updategrub}" "(Updates GRUB configuration file)")
 	options+=("${txtvirtualizationsetup_updateinitramfs}" "(Updates initramfs boot files)")
+	options+=("${txtvirtualizationsetup_cpupinning}" "(Completely isolates CPU Cores 0 and 1 from the kernel scheduler)")
 	sel=$(whiptail --backtitle "${appTitle}" --title "${txtvirtualizationsetup}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
 		clear
 		if [ "${sel}" = "${txtvirtualizationsetup_installpkgs}" ]; then
+			echo apt install -y qemu-kvm virt-manager bridge-utils ovmf
 			apt install -y qemu-kvm virt-manager bridge-utils ovmf
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtvirtualizationsetup_backupsysfiles}" ]; then
+			echo cp /etc/default/grub /etc/default/grub.backup &&
+			echo cp /etc/apt/sources.list /etc/apt/sources.list.backup &&
+			echo cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup
 			cp /etc/default/grub /etc/default/grub.backup &&
 			cp /etc/apt/sources.list /etc/apt/sources.list.backup &&
 			cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtvirtualizationsetup_enableiommu}" ]; then
+			echo "printf '# If you change this file, run 'update-grub' afterwards to update
+# /boot/grub/grub.cfg.
+# For full documentation of the options in this file, see:
+#   info -f grub -n 'Simple configuration'
+GRUB_DEFAULT=0
+GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
+GRUB_CMDLINE_LINUX_DEFAULT='quiet splash intel_iommu=on iommu=pt'
+GRUB_CMDLINE_LINUX=''
+# Uncomment to enable BadRAM filtering, modify to suit your needs
+# This works with Linux (no patch required) and with any kernel that obtains
+# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
+#GRUB_BADRAM='0x01234567,0xfefefefe,0x89abcdef,0xefefefef'
+# Uncomment to disable graphical terminal (grub-pc only)
+#GRUB_TERMINAL=console
+# The resolution used on graphical terminal
+# note that you can use only modes which your graphic card supports via VBE
+# you can see them in real GRUB with the command 'vbeinfo'
+#GRUB_GFXMODE=640x480
+# Uncomment if you do not want GRUB to pass 'root=UUID=xxx' parameter to Linux
+#GRUB_DISABLE_LINUX_UUID=true
+# Uncomment to disable generation of recovery mode menu entries
+#GRUB_DISABLE_RECOVERY='true'
+# Uncomment to get a beep at grub start
+#GRUB_INIT_TUNE='480 440 1'' > /etc/default/grub" &&
 			printf '# If you change this file, run "update-grub" afterwards to update
 # /boot/grub/grub.cfg.
 # For full documentation of the options in this file, see:
@@ -273,6 +315,10 @@ GRUB_CMDLINE_LINUX=""
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtvirtualizationsetup_enablenested}" ]; then
+			echo "printf 'options kvm_intel nested=1
+options kvm-intel enable_shadow_vmcs=1
+options kvm-intel enable_apicv=1
+options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf"
 			printf 'options kvm_intel nested=1
 options kvm-intel enable_shadow_vmcs=1
 options kvm-intel enable_apicv=1
@@ -280,7 +326,7 @@ options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtvirtualizationsetup_aptsourcelist}" ]; then
-			printf '#
+			echo "printf '#
 # DEBIAN REPOSITORIES
 #
 # main repository
@@ -298,15 +344,144 @@ deb-src http://deb.debian.org/debian/ buster-backports main contrib non-free
 #
 # THIRD-PARTY REPOSITORIES
 #
-deb http://repository.spotify.com stable non-free' > /etc/apt/sources.list &&
+deb http://repository.spotify.com stable non-free' > /etc/apt/sources.list" &&
+			echo printf '#
+# DEBIAN REPOSITORIES
+#
+# main repository
+deb http://deb.debian.org/debian/ buster main non-free contrib
+deb-src http://deb.debian.org/debian/ buster main non-free contrib
+# security-updates repositories
+deb http://security.debian.org/debian-security buster/updates main contrib non-free
+deb-src http://security.debian.org/debian-security buster/updates main contrib non-free
+# updates repository
+deb http://deb.debian.org/debian/ buster-updates main contrib non-free
+deb-src http://deb.debian.org/debian/ buster-updates main contrib non-free
+# backports repository
+deb http://deb.debian.org/debian/ buster-backports main contrib non-free
+deb-src http://deb.debian.org/debian/ buster-backports main contrib non-free
+#
+# THIRD-PARTY REPOSITORIES
+#
+deb http://repository.spotify.com stable non-free
+deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' > /etc/apt/sources.list &&
+			apt update
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtvirtualizationsetup_updategrub}" ]; then
+			echo update-grub
 			update-grub
 			pressanykey
 			nextitem="."
-
+		elif [ "${sel}" = "${txtvirtualizationsetup_cpupinning}" ]; then
+    			while true; do
+        			read -p "Before doing CPU Pinning, is your system powered by Intel or AMD? " input
+        			case $input in
+            				[intel || INTEL || Intel]* ) echo "printf '# If you change this file, run 'update-grub' afterwards to update
+# /boot/grub/grub.cfg.
+# For full documentation of the options in this file, see:
+#   info -f grub -n 'Simple configuration'
+GRUB_DEFAULT=0
+GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
+GRUB_CMDLINE_LINUX_DEFAULT='quiet splash intel_iommu=on iommu=pt isolcpus=0,1 nohz_full=0,1 rcu_nocbs=0,1'
+GRUB_CMDLINE_LINUX=''
+# Uncomment to enable BadRAM filtering, modify to suit your needs
+# This works with Linux (no patch required) and with any kernel that obtains
+# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
+#GRUB_BADRAM='0x01234567,0xfefefefe,0x89abcdef,0xefefefef'
+# Uncomment to disable graphical terminal (grub-pc only)
+#GRUB_TERMINAL=console
+# The resolution used on graphical terminal
+# note that you can use only modes which your graphic card supports via VBE
+# you can see them in real GRUB with the command 'vbeinfo'
+#GRUB_GFXMODE=640x480
+# Uncomment if you do not want GRUB to pass 'root=UUID=xxx' parameter to Linux
+#GRUB_DISABLE_LINUX_UUID=true
+# Uncomment to disable generation of recovery mode menu entries
+#GRUB_DISABLE_RECOVERY='true'
+# Uncomment to get a beep at grub start
+#GRUB_INIT_TUNE='480 440 1'' > /etc/default/grub"; printf '# If you change this file, run "update-grub" afterwards to update
+# /boot/grub/grub.cfg.
+# For full documentation of the options in this file, see:
+#   info -f grub -n "Simple configuration"
+GRUB_DEFAULT=0
+GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on iommu=pt isolcpus=0,1 nohz_full=0,1 rcu_nocbs=0,1"
+GRUB_CMDLINE_LINUX=""
+# Uncomment to enable BadRAM filtering, modify to suit your needs
+# This works with Linux (no patch required) and with any kernel that obtains
+# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
+#GRUB_BADRAM="0x01234567,0xfefefefe,0x89abcdef,0xefefefef"
+# Uncomment to disable graphical terminal (grub-pc only)
+#GRUB_TERMINAL=console
+# The resolution used on graphical terminal
+# note that you can use only modes which your graphic card supports via VBE
+# you can see them in real GRUB with the command "vbeinfo"
+#GRUB_GFXMODE=640x480
+# Uncomment if you do not want GRUB to pass "root=UUID=xxx" parameter to Linux
+#GRUB_DISABLE_LINUX_UUID=true
+# Uncomment to disable generation of recovery mode menu entries
+#GRUB_DISABLE_RECOVERY="true"
+# Uncomment to get a beep at grub start
+#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub ; break;;
+            				[amd || AMD || Amd]* ) echo "printf '# If you change this file, run 'update-grub' afterwards to update
+# /boot/grub/grub.cfg.
+# For full documentation of the options in this file, see:
+#   info -f grub -n 'Simple configuration'
+GRUB_DEFAULT=0
+GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
+GRUB_CMDLINE_LINUX_DEFAULT='quiet splash amd_iommu=on iommu=pt isolcpus=0,1 nohz_full=0,1 rcu_nocbs=0,1'
+GRUB_CMDLINE_LINUX=''
+# Uncomment to enable BadRAM filtering, modify to suit your needs
+# This works with Linux (no patch required) and with any kernel that obtains
+# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
+#GRUB_BADRAM='0x01234567,0xfefefefe,0x89abcdef,0xefefefef'
+# Uncomment to disable graphical terminal (grub-pc only)
+#GRUB_TERMINAL=console
+# The resolution used on graphical terminal
+# note that you can use only modes which your graphic card supports via VBE
+# you can see them in real GRUB with the command 'vbeinfo'
+#GRUB_GFXMODE=640x480
+# Uncomment if you do not want GRUB to pass 'root=UUID=xxx' parameter to Linux
+#GRUB_DISABLE_LINUX_UUID=true
+# Uncomment to disable generation of recovery mode menu entries
+#GRUB_DISABLE_RECOVERY='true'
+# Uncomment to get a beep at grub start
+#GRUB_INIT_TUNE='480 440 1'' > /etc/default/grub"; printf '# If you change this file, run "update-grub" afterwards to update
+# /boot/grub/grub.cfg.
+# For full documentation of the options in this file, see:
+#   info -f grub -n 'Simple configuration'
+GRUB_DEFAULT=0
+GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amd_iommu=on iommu=pt isolcpus=0,1 nohz_full=0,1 rcu_nocbs=0,1"
+GRUB_CMDLINE_LINUX=""
+# Uncomment to enable BadRAM filtering, modify to suit your needs
+# This works with Linux (no patch required) and with any kernel that obtains
+# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
+#GRUB_BADRAM="0x01234567,0xfefefefe,0x89abcdef,0xefefefef"
+# Uncomment to disable graphical terminal (grub-pc only)
+#GRUB_TERMINAL=console
+# The resolution used on graphical terminal
+# note that you can use only modes which your graphic card supports via VBE
+# you can see them in real GRUB with the command "vbeinfo"
+#GRUB_GFXMODE=640x480
+# Uncomment if you do not want GRUB to pass "root=UUID=xxx" parameter to Linux
+#GRUB_DISABLE_LINUX_UUID=true
+# Uncomment to disable generation of recovery mode menu entries
+#GRUB_DISABLE_RECOVERY="true"
+# Uncomment to get a beep at grub start
+#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub ; break;;
+            				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
+        			esac
+    			done
+			pressanykey
+			nextitem="."
 		elif [ "${sel}" = "${txtvirtualizationsetup_updateinitramfs}" ]; then
+			echo update-initramfs -u -k all
 			update-initramfs -u -k all
 			pressanykey
 			nextitem="."
@@ -323,11 +498,17 @@ fixesSetup(){
 	if [ "$?" = "0" ]; then
 		clear
 		if [ "${sel}" = "${txtfixes_fixwiredunmanaged}" ]; then
+			echo "printf '[main]
+plugins=keyfile,ifupdown
+
+[ifupdown]
+managed=true' > /etc/NetworkManager/NetworkManager.conf" &&
 			printf '[main]
 plugins=keyfile,ifupdown
 
 [ifupdown]
-managed=true' > /etc/NetworkManager/NetworkManager.conf &&
+managed=true' > /etc/NetworkManager/NetworkManager.conf
+			echo systemctl restart NetworkManager
 			systemctl restart NetworkManager
 			pressanykey
 			nextitem="."
@@ -343,7 +524,7 @@ loadstrings_us(){
 	locale=en_US.UTF-8
 
 	lang_us="English (US)"
-	lang_es="Spanish (Spain)"
+	lang_es="Spanish (Spain) WIP"
 	langdesc="(By Liam Powell)"
 
 	txtexit="Exit"
@@ -387,11 +568,12 @@ loadstrings_us(){
 	txtvirtualizationsetup_aptsourcelist="5.- Create APT sources.list File"
 	txtvirtualizationsetup_updategrub="6.- Update GRUB Config File"
 	txtvirtualizationsetup_updateinitramfs="7.- Update Boot Files"
+	txtvirtualizationsetup_cpupinning="(8.- CPU Pinning (w/o HT))"
 	
 	txtfixes="Fixes"
 	txtfixesdesc="(Common Fixes for Debian)"
 	txtfixes_fixwiredunmanaged="Fix Wired Unmanaged"
-	txtfixes_fixwiredunmanageddesc=""
+	txtfixes_fixwiredunmanageddesc="(Sets ifupdown managed parameter to true of NM)"
 
 	txtreboot="Reboot"
 	txtrebootdesc="(Shutdown the computer and then start it up again)"
@@ -450,6 +632,12 @@ loadstrings_es(){
 	txtvirtualizationsetup_aptsourcelist="5.- Crear archivo sources.list de APT"
 	txtvirtualizationsetup_updategrub="6.- Actualizar archivo de configuración GRUB"
 	txtvirtualizationsetup_updateinitramfs="7.- Actualizar archivos de arranque"
+	txtvirtualizationsetup_cpupinning="(8.- CPU Pinning (sin HT))"
+	
+	txtfixes="Arreglos"
+	txtfixesdesc="(Arreglos comunes para Debian)"
+	txtfixes_fixwiredunmanaged="Arreglar Ethernet sin manejar por NetworkManager"
+	txtfixes_fixwiredunmanageddesc="(Establece el parámetro 'managed' de 'ifupdown' a 'true' de NM)"
 
 	txtreboot="Reiniciar"
 	txtrebootdesc="(Apaga el ordenador y entonces inicíalo otra vez)"
