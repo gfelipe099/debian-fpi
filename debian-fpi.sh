@@ -168,7 +168,7 @@ extrasSetup(){
 	options+=("${txtextrassetup_bsystools}" "(Required to install Spotify)")
 	options+=("${txtextrassetup_webbrowser}" "(Installs Firefox ESR)")
 	options+=("${txtextrassetup_officesuite}" "(Installs LibreOffice)")
-	options+=("${txtextrassetup_gaming}" "(Installs Steam and PCSX2)")
+	options+=("${txtextrassetup_gaming}" "(Installs Steam, Lutris and PCSX2)")
 	options+=("${txtextrassetup_multimedia}" "(Installs GIMP and Spotify)")
 	options+=("${txtextrassetup_nvidia}" "(Installs NVIDIA propietary drivers)")
 	sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
@@ -184,8 +184,8 @@ extrasSetup(){
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_bsystools}" ]; then
-			echo apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gedit gcc make perl curl linux-headers-$(uname -r)
-			apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gedit gcc make perl curl linux-headers-$(uname -r)
+			echo apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gedit wget gcc make perl curl linux-headers-$(uname -r)
+			apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gedit wget gcc make perl curl linux-headers-$(uname -r)
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_webbrowser}" ]; then
