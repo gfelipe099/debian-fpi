@@ -98,7 +98,7 @@ reboot(){
 changeLanguage(){
 	options=()
 	options+=("${lang_us}" "${langdesc}")
-	options+=("${lang_es}, WIP" "${langdesc}")
+	options+=("${lang_es}" "${langdesc}")
 	sel=$(whiptail --backtitle "${appTitle}" --title "${txtlanguage}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
@@ -375,9 +375,9 @@ deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' > /e
 			nextitem="."
 		elif [ "${sel}" = "${txtvirtualizationsetup_cpupinning}" ]; then
     			while true; do
-        			read -p "Before doing CPU Pinning, is your system powered by Intel or AMD? " input
+        			read -p "Before doing CPU Pinning, from which brand is your CPU of? [intel/amd]: " input
         			case $input in
-            				[intel || INTEL || Intel]* ) echo "printf '# If you change this file, run 'update-grub' afterwards to update
+            				[intel]* ) echo "printf '# If you change this file, run 'update-grub' afterwards to update
 # /boot/grub/grub.cfg.
 # For full documentation of the options in this file, see:
 #   info -f grub -n 'Simple configuration'
@@ -426,7 +426,7 @@ GRUB_CMDLINE_LINUX=""
 #GRUB_DISABLE_RECOVERY="true"
 # Uncomment to get a beep at grub start
 #GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub ; break;;
-            				[amd || AMD || Amd]* ) echo "printf '# If you change this file, run 'update-grub' afterwards to update
+            				[amd]* ) echo "printf '# If you change this file, run 'update-grub' afterwards to update
 # /boot/grub/grub.cfg.
 # For full documentation of the options in this file, see:
 #   info -f grub -n 'Simple configuration'
