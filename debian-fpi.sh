@@ -6,7 +6,7 @@
 # debian-fpi.sh file
 # For Debian GNU/Linux 10.2.0/10.3.0 (buster) desktop amd64
 #
-appTitle="Debian Fast Post-Installer Setup v20200406.2-alpha (Early Build)"
+appTitle="Debian Fast Post-Installer Setup v20200407.3-alpha (Early Build)"
 
 #
 # text formatting codes
@@ -28,12 +28,15 @@ fi
 # credits to https://danielgibbs.co.uk
 # source: https://danielgibbs.co.uk/2013/04/bash-how-to-detect-os/
 distroInfo="Debian $(cat /etc/debian_version) $(uname -r)"
+distroSystem="$(cat /etc/issue)"
 
-if [[ "$distroInfo" = "Debian 10.2 4.19.0-6-amd64" || "Debian 10.3 4.19.0-8-amd64" ]]; then
-    # Fix potential missing applications icons by
-    # creating this directory before installing
-    # anything.
-    mkdir /usr/share/desktop-directories/ 
+if [[ "$(distroSystem)" = "Debian GNU/Linux 10 \n \l" ]]; then
+
+	if [[ "$distroInfo" = "Debian 10.2 4.19.0-6-amd64" || "Debian 10.3 4.19.0-8-amd64" ]]; then
+    		# Fix potential missing applications icons by
+    		# creating this directory before installing
+    		# anything.
+    		mkdir /usr/share/desktop-directories/ 
 
 # ------------------------------------------------- script beginning ------------------------------------------------- #
 root(){
@@ -666,6 +669,11 @@ loadstrings_es(){
 	root
     else
         echo -e "${boldText}${red}Sorry, ${distroInfo} is not supported yet."${normalText}
+        exit 0
+fi
+   else
+        echo -e "${boldText}${red}Sorry, you seems to be using: ${distroSystem}"${normalText}
+        echo -e "${boldText}${red}Debian-based distributions are not supported and won't be in the future."${normalText}
         exit 1
 fi
 # ------------------------------------------------- script end ------------------------------------------------- #
