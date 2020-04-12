@@ -30,7 +30,7 @@ fi
 distroInfo="Debian $(cat /etc/debian_version) $(uname -r)"
 distroSystem="$(cat /etc/issue)"
 
-if [[ "$(distroSystem)" = "Debian GNU/Linux 10 \n \l" ]]; then
+if [[ "$distroSystem" = "Debian GNU/Linux 10 \n \l" ]]; then
 
 	if [[ "$distroInfo" = "Debian 10.2 4.19.0-6-amd64" || "Debian 10.3 4.19.0-8-amd64" ]]; then
     		# Fix potential missing applications icons by
