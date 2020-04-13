@@ -187,8 +187,8 @@ extrasSetup(){
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_bsystools}" ]; then
-			echo apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gedit wget gcc make perl curl linux-headers-$(uname -r)
-			apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gedit wget gcc make perl curl linux-headers-$(uname -r)
+			echo apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gufw ufw gedit wget gcc make perl curl linux-headers-$(uname -r)
+			apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gufw ufw gedit wget gcc make perl curl linux-headers-$(uname -r)
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_webbrowser}" ]; then
@@ -203,20 +203,21 @@ extrasSetup(){
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_gaming}" ]; then
 			echo "echo 'deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' >> /etc/apt/sources.list"
-			echo wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_10/Release.key -O- | sudo apt-key add -
+			echo "wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_10/Release.key -O- | sudo apt-key add -"
 			echo apt update
 			echo apt install -yy steam pcsx2 lutris
-			echo "deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./" >> /etc/apt/sources.list
-			wget https://download.opensuse.org/repositories/home:/strycore/Debian_10/Release.key -O- | sudo apt-key add -
-			apt update &&
+			apt update
 			apt install -yy steam pcsx2 lutris
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_multimedia}" ]; then
-			echo curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add -
-			echo "deb http://repository.spotify.com stable non-free" >> /etc/apt/sources.list
+			echo "curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add -"
+			echo "'deb http://repository.spotify.com stable non-free' >> /etc/apt/sources.list"
 			curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add -
-			apt update &&
+			echo "deb http://repository.spotify.com stable non-free" >> /etc/apt/sources.list
+			echo apt update
+			echo apt install -yy gimp spotify-client
+			apt update
 			apt install -yy gimp spotify-client
 			pressanykey
 			nextitem="."
