@@ -6,7 +6,7 @@
 # debian-fpi.sh file
 # For Debian GNU/Linux 10.2.0/10.3.0 (buster) desktop amd64
 #
-appTitle="Debian Fast Post-Installer Setup v20200407.3-alpha (Early Build)"
+appTitle="Debian Fast Post-Installer Setup v20200417.0-alpha (Early Build)"
 
 #
 # text formatting codes
@@ -167,13 +167,15 @@ fi
 
 extrasSetup(){
 	options=()
-	options+=("${txtextrassetupx86_packages}" "(Required to install Steam or Spotify)")
-	options+=("${txtextrassetup_bsystools}" "(Required to install Spotify)")
+	options+=("${txtextrassetupx86_packages}" "(Required by some third-party applications)")
+	options+=("${txtextrassetup_bsystools}" "(Installs nautilus, gdebi, gnome-terminal, etc.)")
 	options+=("${txtextrassetup_webbrowser}" "(Installs Firefox ESR)")
 	options+=("${txtextrassetup_officesuite}" "(Installs LibreOffice)")
 	options+=("${txtextrassetup_gaming}" "(Installs Steam, Lutris and PCSX2)")
 	options+=("${txtextrassetup_multimedia}" "(Installs GIMP and Spotify)")
 	options+=("${txtextrassetup_nvidia}" "(Installs NVIDIA propietary drivers)")
+	options+=("${txtextrassetup_amd_intel}" "(Installs Mesa and VULKAN open source drivers)")
+	options+=("${txtextrassetup_material_debian}" "(Installs a set of Material Design inspired theme, icons and font family)")
 	sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
@@ -187,7 +189,7 @@ extrasSetup(){
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_bsystools}" ]; then
-			echo apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gufw ufw gedit wget gcc make perl curl linux-headers-$(uname -r)
+			echo apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gufw ufw clamtk gedit wget gcc make perl curl linux-headers-$(uname -r)
 			apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gufw ufw gedit wget gcc make perl curl linux-headers-$(uname -r)
 			pressanykey
 			nextitem="."
@@ -223,9 +225,31 @@ extrasSetup(){
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_nvidia}" ]; then
     			while true; do
-        			read -p "Do you want to install the drivers for your NVIDIA graphics card (if any)? (reboot required): " input
+        			read -p "${txtextrassetup_nvidia_dialog}" input
         			case $input in
-            				[Yy]* ) sleep 2; sudo apt install -yy nvidia-driver; echo -e; break;;
+            				[Yy]* ) sleep 2; echo sudo apt update; echo sudo apt install -yy nvidia-driver; sudo apt update; sudo apt install -yy nvidia-driver; break;;
+            				[Nn]* ) break;;
+            				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
+        			esac
+    			done
+			pressanykey
+			nextitem="."
+		elif [ "${sel}" = "${txtextrassetup_amd_intel}" ]; then
+    			while true; do
+        			read -p "${txtextrassetup_amd_intel_dialog}" input
+        			case $input in
+            				[Yy]* ) sleep 2; echo sudo apt update -yy; echo sudo apt install -yy libgl1-mesa-dri:i386 mesa-vulkan-drivers mesa-vulkan-drivers:i386; sudo apt update; sudo apt install -yy libgl1-mesa-dri:i386 mesa-vulkan-drivers mesa-vulkan-drivers:i386; break;;
+            				[Nn]* ) break;;
+            				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
+        			esac
+    			done
+			pressanykey
+			nextitem="."
+		elif [ "${sel}" = "${txtextrassetup_material_debian}" ]; then
+    			while true; do
+        			read -p "${txtextrassetup_material_debian_dialog}" input
+        			case $input in
+            				[Yy]* ) sleep 2; echo sudo apt update; echo sudo apt install -yy material-gtk-theme papirus-icon-theme; sudo apt update; sudo apt install -yy material-gtk-theme papirus-icon-theme; break;;
             				[Nn]* ) break;;
             				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
         			esac
@@ -575,6 +599,11 @@ loadstrings_us(){
 	txtextrassetup_gaming="5.- Install Gaming Software"
 	txtextrassetup_multimedia="6.- Install Multimedia Software"
 	txtextrassetup_nvidia="7.- Install NVIDIA Drivers"
+	txtextrassetup_nvidia_dialog="Do you want to install the drivers for your NVIDIA graphics card (if any)? (reboot required) [Y/N]: "
+	txtextrassetup_amd_intel="8.- Install Mesa and VULKAN Drivers"
+	txtextrassetup_amd_intel_dialog="Do you want to install the Mesa and VULKAN drivers for your AMD graphics card or Intel iGPU (if any)? (restart recommended) [Y/N]: "
+	txtextrassetup_material_debian="9.- Install Materia GTK Theme and Papirus Icon Theme"
+	txtextrassetup_material_debian_dialog="Do you want to install the Materia GTK theme among the Papirus Icon Theme and the Roboto fonts?"
 
 	txtvirtualization="Virtualization"
 	txtvirtualizationdesc="(Install qemu-kvm, Enable Nested Virtualization, etc.)"
@@ -639,6 +668,12 @@ loadstrings_es(){
 	txtextrassetup_gaming="5.- Install programas para jugar"
 	txtextrassetup_multimedia="6.- Install programas multimedia"
 	txtextrassetup_nvidia="7.- Instalar controladores de NVIDIA"
+	txtextrassetup_nvidia_dialog="¿Quieres instalar los controladores de tu tarjeta gráfica NVIDIA (si la hay)? (reinicio requerido) [Y/N]: "
+	txtextrassetup_amd_intel="8.- Instalar controladores de Mesa y VULKAN"
+	txtextrassetup_amd_intel_dialog="¿Quieres instalar los controladores de Mesa y VULKAN? (reinicio recomendado) [Y/N]: "
+	txtextrassetup_material_debian="9.- Instalar Materia GTK Theme, Papirus Icon Theme y Roboto Fonts Family"
+	txtextrassetup_material_debian_dialog="¿Quieres instalar el tema Materia GTK, el tema de iconos Papirus y la familia de fuentes Roboto?"
+	
 
 	txtvirtualization="Virtualización"
 	txtvirtualizationdesc="(Instalar qemu-kvm, habilitar virtualización anidada, etc.)"
@@ -669,7 +704,7 @@ loadstrings_es(){
 	loadstrings_us
 	root
     else
-        echo -e "${boldText}${red}Sorry, ${distroInfo} is not supported yet."${normalText}
+    	echo -e "${boldText}${red}Sorry, ${distroInfo} is not supported yet."${normalText}
         exit 0
 fi
    else
