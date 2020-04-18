@@ -5,6 +5,8 @@ A modified version of archfi for Debian, which I called Debian Fast Post-Install
 There are a few requirements which you have to do in order to use this script correctly or to even make it work correctly (this may change in the future):
 
 You explicitly need to:
+> **Use the EXT4 filesystem in order to use a swap file.**
+
 > **Not include a swap partition in your favorite or preferred partition scheme.**
 
 > **Disallow, not use or disable the root account upon the installation or the script will fail in some areas.**
