@@ -6,7 +6,7 @@
 # debian-fpi.sh file
 # For Debian GNU/Linux 10.2.0/10.3.0 (buster) desktop amd64
 #
-appTitle="Debian Fast Post-Installer Setup v20200417.0-alpha (Early Build)"
+appTitle="Debian Fast Post-Installer Setup v20200423.2-sid (Sid/Unstable Build)"
 
 #
 # text formatting codes
@@ -25,21 +25,17 @@ if [ "$(whoami)" != "root" ]; then
 fi
 
 # check if the OS is Debian
-# credits to https://danielgibbs.co.uk
-# source: https://danielgibbs.co.uk/2013/04/bash-how-to-detect-os/
+# credits to https://unix.stackexchange.com/users/33967/joeytwiddle, https://danielgibbs.co.uk
+# source: https://unix.stackexchange.com/questions/6345/how-can-i-get-distribution-name-and-version-number-in-a-simple-shell-script, https://danielgibbs.co.uk/2013/04/bash-how-to-detect-os/
 distroInfo="Debian $(cat /etc/debian_version) $(uname -r)"
-distroSystem="$(cat /etc/issue)"
+distroSystem="$(lsb_release -ds)"
 
-if [[ "$distroSystem" = "Debian GNU/Linux 10 \n \l" ]]; then
+if [[ "$distroSystem" = "Debian GNU/Linux 10 (buster)" ]]; then
 
 	if [[ "$distroInfo" = "Debian 10.2 4.19.0-6-amd64" || "Debian 10.3 4.19.0-8-amd64" ]]; then
-    		# Fix potential missing applications icons by
-    		# creating this directory before installing
-    		# anything.
-    		mkdir /usr/share/desktop-directories/ 
-
 # ------------------------------------------------- script beginning ------------------------------------------------- #
 root(){
+	cd /tmp
 	if [ "${1}" = "" ]; then
 		nextitem="."
 	else
@@ -66,11 +62,11 @@ root(){
 			;;
 			"${txtbase}")
 				baseSetup
-				nextitem="${txtextras}"
+				nextitem="."
 			;;
 			"${txtextras}")
 				extrasSetup
-				nextitem="${txtfixes}"
+				nextitem="."
 			;;
 			"${txtvirtualization}")
 				virtualizationSetup
@@ -115,17 +111,61 @@ changeLanguage(){
 	fi
 }
 
+prepareSystem(){
+    	echo "mkdir /usr/share/desktop-directories/"
+		echo "dpkg --add-architecture i386"
+		echo "sudo apt update -yy"
+		echo "sudo apt install -yy curl"
+		echo "curl -s https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -"
+		echo "curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add -"
+		echo "wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_10/Release.key -O- | sudo apt-key add -"
+		echo "sudo apt update -yy"
+		echo "printf '#
+# THIRD-PARTY REPOSITORIES
+#
+deb http://repository.spotify.com stable non-free
+deb http://repo.vivaldi.com/stable/deb/ stable main
+deb [arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main
+deb [arch=amd64] http://packages.microsoft.com/repos/vscode stable main
+deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main
+deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' > /etc/apt/sources.list.d/thirdparty.list"
+		echo -n "Please wait while your computer is being prepared ... "
+		mkdir /usr/share/desktop-directories/ &>/dev/null
+		dpkg --add-architecture i386 &>/dev/null
+		sudo apt update -yy &>/dev/null
+		sudo apt install -yy curl &>/dev/null
+		curl -s https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add - &>/dev/null
+		curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add - &>/dev/null
+		wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_10/Release.key -O- | sudo apt-key add - &>/dev/null
+		printf '#
+# THIRD-PARTY REPOSITORIES
+#
+deb http://repository.spotify.com stable non-free
+deb http://repo.vivaldi.com/stable/deb/ stable main
+deb [arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main
+deb [arch=amd64] http://packages.microsoft.com/repos/vscode stable main
+deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main
+deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' > /etc/apt/sources.list.d/thirdparty.list &>/dev/null
+		sudo apt update -yy &>/dev/null && echo -e "done" | echo -e "failed or already prepared"
+		pressanykey
+}
+
 baseSetup(){
 	options=()
-	options+=("${txtsetupbaseinstalldesktop}" "${txtbasedesc}")
+	options+=("${txtsetupbaseinstalldesktop}" "")
 	options+=("${txtsetupbaseswapfile4g}" "${txtsetupbaseswapfile4gdesc}")
 	options+=("${txtsetupbaseswapfile8g}" "${txtsetupbaseswapfile8gdesc}")
-	sel=$(whiptail --backtitle "${appTitle}" --title "${txtsetupbase}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
+	sel=$(whiptail --backtitle "${appTitle}" --title "${txtbasesetup}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
 		clear
 		if [ "${sel}" = "${txtsetupbaseswapfile4g}" ]; then
+			echo "fallocate -l 4G /swapfile"
+			echo "chmod 0600 /swapfile"
+			echo "mkswap -L swap /swapfile"
+			echo "swapon /swapfile"
+			echo "echo "/swapfile swap swap defaults" 0 0 >> /etc/fstab"
 			fallocate -l 4G /swapfile
 			chmod 0600 /swapfile
 			mkswap -L swap /swapfile
@@ -134,6 +174,11 @@ baseSetup(){
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtsetupbaseswapfile8g}" ]; then
+			echo "fallocate -l 8G /swapfile"
+			echo "chmod 0600 /swapfile"
+			echo "mkswap -L swap /swapfile"
+			echo "swapon /swapfile"
+			echo "echo "/swapfile swap swap defaults" 0 0 >> /etc/fstab"
 			fallocate -l 8G /swapfile
 			chmod 0600 /swapfile
 			mkswap -L swap /swapfile
@@ -144,18 +189,20 @@ baseSetup(){
 		fi
 		if [ "${sel}" = "${txtsetupbaseinstalldesktop}" ]; then
 			options=()
-			options+=("GNOME" "(${txttestedworking})")
-			options+=("KDE Plasma" "(${txtnottestedyet})")
+			options+=("GNOME" "${txtmadeby}")
+			options+=("KDE Plasma" "${txtmadeby_helpwanted}")
 			sel=$(whiptail --backtitle "${appTitle}" --title "${txtsetupbaseselectdesktop}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
 			"${options[@]}" \
 			3>&1 1>&2 2>&3)
 		if [ "$?" = "0" ]; then
 			clear
 				if [ "${sel}" = "GNOME" ]; then
+					echo "apt install -yy gdm3*"
 					apt install -yy gdm3*
 					pressanykey
 					nextitem="."
 				elif [ "${sel}" = "KDE Plasma" ]; then
+					echo "apt install -yy sddm*"
 					apt install -yy sddm*
 					pressanykey
 					nextitem="."
@@ -168,34 +215,112 @@ fi
 extrasSetup(){
 	options=()
 	options+=("${txtextrassetupx86_packages}" "(Required by some third-party applications)")
-	options+=("${txtextrassetup_bsystools}" "(Installs nautilus, gdebi, gnome-terminal, etc.)")
-	options+=("${txtextrassetup_webbrowser}" "(Installs Firefox ESR)")
+	options+=("${txtextrassetup_bsystools_gnome}" "(Installs GNOME basic tools)")
+	options+=("${txtextrassetup_bsystools_kde}" "(Installs KDE basic tools)")
+	options+=("${txtextrassetup_webbrowser}" "(Install a web browser)")
 	options+=("${txtextrassetup_officesuite}" "(Installs LibreOffice)")
-	options+=("${txtextrassetup_gaming}" "(Installs Steam, Lutris and PCSX2)")
-	options+=("${txtextrassetup_multimedia}" "(Installs GIMP and Spotify)")
+	options+=("${txtextrassetup_gaming}" "(Install software made to play games)")
+	options+=("${txtextrassetup_multimedia}" "(Install software for multimedia purposes)")
 	options+=("${txtextrassetup_nvidia}" "(Installs NVIDIA propietary drivers)")
 	options+=("${txtextrassetup_amd_intel}" "(Installs Mesa and VULKAN open source drivers)")
-	options+=("${txtextrassetup_material_debian}" "(Installs a set of Material Design inspired theme, icons and font family)")
+	options+=("${txtextrassetup_material_debian}" "(Install Material Design themes, icons and font families)")
 	sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
 		clear
 		if [ "${sel}" = "${txtextrassetupx86_packages}" ]; then
-			echo dpkg --add-architecture i386
-			echo apt update
-			dpkg --add-architecture i386 &&
-			apt update
+			prepareSystem
+			nextitem="."
+		elif [ "${sel}" = "${txtextrassetup_bsystools_gnome}" ]; then
+			pkgs=""
+			options=()
+			options+=("gdebi" "Package Installer" on)
+			options+=("nautilus" "GNOME File Manager" on)
+			options+=("htop" "Command Line System Monitor" off)
+			options+=("gnome-terminal" "GNOME Terminal" on)
+			options+=("terminator" "Terminator Terminal" off)
+			options+=("gnome-disk-utility" "GNOME Disk Utility" on)
+			options+=("gnome-system-monitor" "GNOME System Monitor" on)
+			options+=("gufw" "Uncomplicated Firewall with GUI" on)
+			options+=("clamtk" "Graphical Front-end for Clam Antivirus" on)
+			options+=("gcc" "GNU Compiler Collection" on)
+			options+=("make" "Building Utility" on)
+			options+=("curl" "Command-Line Tool for Transferring Data" on)
+			options+=("linux-headers-$(uname -r)" "Linux Headers Files" on)
+			sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_gnome}" --checklist "" 0 0 0 \
+				"${options[@]}" \
+				3>&1 1>&2 2>&3)
+			if [ ! "$?" = "0" ]; then
+				return 1
+			fi
+			for itm in $sel; do
+				pkgs="$pkgs $(echo $itm | sed 's/"//g')"
+			done
+			clear
+			echo "sudo apt update"
+			echo "sudo apt install -yy ${pkgs}"
+			sudo apt update
+			sudo apt install -yy ${pkgs}
 			pressanykey
 			nextitem="."
-		elif [ "${sel}" = "${txtextrassetup_bsystools}" ]; then
-			echo apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gufw ufw clamtk gedit wget gcc make perl curl linux-headers-$(uname -r)
-			apt install -yy gdebi nautilus gnome-terminal gnome-disk-utility gnome-system-monitor gufw ufw gedit wget gcc make perl curl linux-headers-$(uname -r)
+		elif [ "${sel}" = "${txtextrassetup_bsystools_kde}" ]; then
+			pkgs=""
+			options=()
+			options+=("gdebi" "Package Installer" on)
+			options+=("dolphin" "KDE File Manager" on)
+			options+=("konsole" "KDE Terminal" on)
+			options+=("terminator" "Terminator Terminal" off)
+			options+=("gnome-disk-utility" "GNOME Disk Utility" on)
+			options+=("htop" "Command Line System Monitor" off)
+			options+=("ksysguard" "KDE System Monitor" on)
+			options+=("gufw" "Uncomplicated Firewall with GUI" on)
+			options+=("clamtk" "Graphical Front-end for Clam Antivirus" on)
+			options+=("gcc" "GNU Compiler Collection" on)
+			options+=("make" "Building Utility" on)
+			options+=("curl" "Command-Line Tool for Transferring Data" on)
+			options+=("linux-headers-$(uname -r)" "Linux Headers Files" on)
+			sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_kde}" --checklist "" 0 0 0 \
+				"${options[@]}" \
+				3>&1 1>&2 2>&3)
+			if [ ! "$?" = "0" ]; then
+				return 1
+			fi
+			for itm in $sel; do
+				pkgs="$pkgs $(echo $itm | sed 's/"//g')"
+			done
+			clear
+			echo "sudo apt update"
+			echo "sudo apt install -yy ${pkgs}"
+			sudo apt update
+			sudo apt install -yy ${pkgs}
 			pressanykey
+			nextitem="."
+		elif [ "${sel}" = "${txtextrassetupx86_packages}" ]; then
+			prepareSystem
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_webbrowser}" ]; then
-			echo apt install -yy firefox-esr
-			apt install -yy firefox-esr
+			pkgs=""
+			options=()
+			options+=("firefox-esr" "Firefox Extended Support Release (GTK)" on)
+			options+=("vivaldi" "Chromium Based Web Browser (GTK)" off)
+			options+=("google-chrome-stable" "Google Chrome Web Browser (GTK)" off)
+			options+=("brave" "Chromium Based Privacy-Focused Web Browser (GTK)" off)
+			options+=("chromium" "Chromium Web Browser (GTK)" off)
+			sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_webbrowser}" --checklist "" 0 0 0 \
+				"${options[@]}" \
+				3>&1 1>&2 2>&3)
+			if [ ! "$?" = "0" ]; then
+				return 1
+			fi
+			for itm in $sel; do
+				pkgs="$pkgs $(echo $itm | sed 's/"//g')"
+			done
+			clear
+			echo "sudo apt update"
+			echo "sudo apt install -yy ${pkgs}"
+			sudo apt update
+			sudo apt install -yy ${pkgs}
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_officesuite}" ]; then
@@ -204,30 +329,56 @@ extrasSetup(){
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_gaming}" ]; then
-			echo "echo 'deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' >> /etc/apt/sources.list"
-			echo "wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_10/Release.key -O- | sudo apt-key add -"
-			echo apt update
-			echo apt install -yy steam pcsx2 lutris
-			apt update
-			apt install -yy steam pcsx2 lutris
+			pkgs=""
+			options=()
+			options+=("steam" "Valve Video Game Digital Platform (GTK)" off)
+			options+=("pcsx2" "PlayStation 2 (PS2) Emulator (QT)" off)
+			options+=("lutris" "Open Gaming Platform (GTK)" off)
+			sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_gaming}" --checklist "" 0 0 0 \
+				"${options[@]}" \
+				3>&1 1>&2 2>&3)
+			if [ ! "$?" = "0" ]; then
+				return 1
+			fi
+			for itm in $sel; do
+				pkgs="$pkgs $(echo $itm | sed 's/"//g')"
+			done
+			clear
+			echo "sudo apt update"
+			echo "sudo apt install -yy ${pkgs}"
+			sudo apt update
+			sudo apt install -yy ${pkgs}
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_multimedia}" ]; then
-			echo "curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add -"
-			echo "'deb http://repository.spotify.com stable non-free' >> /etc/apt/sources.list"
-			curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add -
-			echo "deb http://repository.spotify.com stable non-free" >> /etc/apt/sources.list
-			echo apt update
-			echo apt install -yy gimp spotify-client
-			apt update
-			apt install -yy gimp spotify-client
+			pkgs=""
+			options=()
+			options+=("gimp" "GNU Image Manipulation Image (GTK)" off)
+			options+=("spotify-client" "Music Streaming Application (GTK)" off)
+			options+=("vlc" "VideoLAN's Media Player (VLC) (QT)" off)
+			options+=("vlc-data" "Common data for VLC" off)
+			options+=("mpv" "GNOME Video Player (QT)" off)
+			sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_multimedia}" --checklist "" 0 0 0 \
+				"${options[@]}" \
+				3>&1 1>&2 2>&3)
+			if [ ! "$?" = "0" ]; then
+				return 1
+			fi
+			for itm in $sel; do
+				pkgs="$pkgs $(echo $itm | sed 's/"//g')"
+			done
+			clear
+			echo "sudo apt update"
+			echo "sudo apt install -yy ${pkgs}"
+			sudo apt update
+			sudo apt install ${pkgs}
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_nvidia}" ]; then
     			while true; do
         			read -p "${txtextrassetup_nvidia_dialog}" input
         			case $input in
-            				[Yy]* ) sleep 2; echo sudo apt update; echo sudo apt install -yy nvidia-driver; sudo apt update; sudo apt install -yy nvidia-driver; break;;
+            				[Yy]* ) sleep 2; echo "sudo apt update"; echo "sudo apt install -yy nvidia-driver"; sudo apt update; sudo apt install -yy nvidia-driver; break;;
             				[Nn]* ) break;;
             				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
         			esac
@@ -238,7 +389,7 @@ extrasSetup(){
     			while true; do
         			read -p "${txtextrassetup_amd_intel_dialog}" input
         			case $input in
-            				[Yy]* ) sleep 2; echo sudo apt update -yy; echo sudo apt install -yy libgl1-mesa-dri:i386 mesa-vulkan-drivers mesa-vulkan-drivers:i386; sudo apt update; sudo apt install -yy libgl1-mesa-dri:i386 mesa-vulkan-drivers mesa-vulkan-drivers:i386; break;;
+            				[Yy]* ) sleep 2; echo "sudo apt update -yy"; echo "sudo apt install -yy libgl1-mesa-dri:i386 mesa-vulkan-drivers mesa-vulkan-drivers:i386"; sudo apt update; sudo apt install -yy libgl1-mesa-dri:i386 mesa-vulkan-drivers mesa-vulkan-drivers:i386; break;;
             				[Nn]* ) break;;
             				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
         			esac
@@ -249,7 +400,7 @@ extrasSetup(){
     			while true; do
         			read -p "${txtextrassetup_material_debian_dialog}" input
         			case $input in
-            				[Yy]* ) sleep 2; echo sudo apt update; echo sudo apt install -yy material-gtk-theme papirus-icon-theme; sudo apt update; sudo apt install -yy material-gtk-theme papirus-icon-theme; break;;
+            				[Yy]* ) sleep 2; echo "sudo apt update"; echo "sudo apt install -yy material-gtk-theme papirus-icon-theme gnome-tweaks"; sudo apt update; sudo apt install -yy material-gtk-theme papirus-icon-theme gnome-tweaks; break;;
             				[Nn]* ) break;;
             				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
         			esac
@@ -261,68 +412,23 @@ extrasSetup(){
 }
 
 virtualizationSetup(){
-	options=()
-	options+=("${txtvirtualizationsetup_installpkgs}" "(Installs qemu-kvm, virt-manager, bridge-utils, ovmf)")
-	options+=("${txtvirtualizationsetup_backupsysfiles}" "(Backups grub config file, APT sources.list, initramfs-tools/modules)")
-	options+=("${txtvirtualizationsetup_enableiommu}" "(Modifies grub.cfg accordingly)")
-	options+=("${txtvirtualizationsetup_enablenested}" "(Enables the virtualization of VT-x/AMD-V)")
-	options+=("${txtvirtualizationsetup_aptsourcelist}" "(Creates a new and clean APT sources.list file)")
-	options+=("${txtvirtualizationsetup_updategrub}" "(Updates GRUB configuration file)")
-	options+=("${txtvirtualizationsetup_updateinitramfs}" "(Updates initramfs boot files)")
-	options+=("${txtvirtualizationsetup_cpupinning}" "(Completely isolates CPU Cores 0 and 1 from the kernel scheduler)")
-	sel=$(whiptail --backtitle "${appTitle}" --title "${txtvirtualizationsetup}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		clear
-		if [ "${sel}" = "${txtvirtualizationsetup_installpkgs}" ]; then
-			echo apt install -y qemu-kvm virt-manager bridge-utils ovmf
-			apt install -y qemu-kvm virt-manager bridge-utils ovmf
-			pressanykey
-			nextitem="."
-		elif [ "${sel}" = "${txtvirtualizationsetup_backupsysfiles}" ]; then
-			echo cp /etc/default/grub /etc/default/grub.backup &&
-			echo cp /etc/apt/sources.list /etc/apt/sources.list.backup &&
-			echo cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup
-			cp /etc/default/grub /etc/default/grub.backup &&
-			cp /etc/apt/sources.list /etc/apt/sources.list.backup &&
-			cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup
-			pressanykey
-			nextitem="."
-		elif [ "${sel}" = "${txtvirtualizationsetup_enableiommu}" ]; then
-			echo "printf '# If you change this file, run 'update-grub' afterwards to update
-# /boot/grub/grub.cfg.
-# For full documentation of the options in this file, see:
-#   info -f grub -n 'Simple configuration'
-GRUB_DEFAULT=0
-GRUB_TIMEOUT=5
-GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
-GRUB_CMDLINE_LINUX_DEFAULT='quiet splash intel_iommu=on iommu=pt'
-GRUB_CMDLINE_LINUX=''
-# Uncomment to enable BadRAM filtering, modify to suit your needs
-# This works with Linux (no patch required) and with any kernel that obtains
-# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
-#GRUB_BADRAM='0x01234567,0xfefefefe,0x89abcdef,0xefefefef'
-# Uncomment to disable graphical terminal (grub-pc only)
-#GRUB_TERMINAL=console
-# The resolution used on graphical terminal
-# note that you can use only modes which your graphic card supports via VBE
-# you can see them in real GRUB with the command 'vbeinfo'
-#GRUB_GFXMODE=640x480
-# Uncomment if you do not want GRUB to pass 'root=UUID=xxx' parameter to Linux
-#GRUB_DISABLE_LINUX_UUID=true
-# Uncomment to disable generation of recovery mode menu entries
-#GRUB_DISABLE_RECOVERY='true'
-# Uncomment to get a beep at grub start
-#GRUB_INIT_TUNE='480 440 1'' > /etc/default/grub" &&
-			printf '# If you change this file, run "update-grub" afterwards to update
+	# select menu
+	# credits to https://askubuntu.com/users/877/paused-until-further-notice
+	# source: https://askubuntu.com/questions/1705/how-can-i-create-a-select-menu-in-a-shell-script
+	clear
+	PS3='Select a brand from above to begin the virtualization setup or abort: '
+	options=("Intel" "AMD" "Abort")
+	select opt in "${options[@]}"; do
+	    case $opt in
+        	"Intel")
+	            echo "apt install -yy qemu-kvm virt-manager bridge-utils ovmf"; echo "cp /etc/default/grub /etc/default/grub.backup"; echo "cp /etc/apt/sources.list /etc/apt/sources.list.backup"; echo "cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup"; echo "printf '# If you change this file, run "update-grub" afterwards to update
 # /boot/grub/grub.cfg.
 # For full documentation of the options in this file, see:
 #   info -f grub -n "Simple configuration"
 GRUB_DEFAULT=0
 GRUB_TIMEOUT=5
 GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on iommu=pt"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on iommu=pt isolcpus=2,3,4,5 nohz_full=2,3,4,5 rcu_nocbs=2,3,4,5 default_hugepagesz=1G hugepagesz=1G hugepages=16 rd.driver.pre=vfio-pci video=efifb:off"
 GRUB_CMDLINE_LINUX=""
 # Uncomment to enable BadRAM filtering, modify to suit your needs
 # This works with Linux (no patch required) and with any kernel that obtains
@@ -339,118 +445,17 @@ GRUB_CMDLINE_LINUX=""
 # Uncomment to disable generation of recovery mode menu entries
 #GRUB_DISABLE_RECOVERY="true"
 # Uncomment to get a beep at grub start
-#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub
-			pressanykey
-			nextitem="."
-		elif [ "${sel}" = "${txtvirtualizationsetup_enablenested}" ]; then
-		while true; do
-        			read -p "Before enabling Nested Virtualization, from which brand is your CPU? [intel/amd]: " input
-        			case $input in
-            				[intel]* ) echo "printf 'options kvm_intel nested=1
+#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub"; echo "printf 'options kvm_intel nested=1
 options kvm-intel enable_shadow_vmcs=1
 options kvm-intel enable_apicv=1
-options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf"
-			printf 'options kvm_intel nested=1
-options kvm-intel enable_shadow_vmcs=1
-options kvm-intel enable_apicv=1
-options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf; break;;
-            				[amd]* )  echo "printf 'options kvm_amd nested=1
-options kvm-amd enable_shadow_vmcs=1
-options kvm-amd enable_apicv=1
-options kvm-amd ept=1' > /etc/modprobe.d/kvm.conf"
-			printf 'options kvm_intel nested=1
-options kvm-amd enable_shadow_vmcs=1
-options kvm-amd enable_apicv=1
-options kvm-amd ept=1' > /etc/modprobe.d/kvm.conf; break;;
-            				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
-        			esac
-    			done
-			pressanykey
-			nextitem="."
-		elif [ "${sel}" = "${txtvirtualizationsetup_aptsourcelist}" ]; then
-			echo "printf '#
-# DEBIAN REPOSITORIES
-#
-# main repository
-deb http://deb.debian.org/debian/ buster main non-free contrib
-deb-src http://deb.debian.org/debian/ buster main non-free contrib
-# security-updates repositories
-deb http://security.debian.org/debian-security buster/updates main contrib non-free
-deb-src http://security.debian.org/debian-security buster/updates main contrib non-free
-# updates repository
-deb http://deb.debian.org/debian/ buster-updates main contrib non-free
-deb-src http://deb.debian.org/debian/ buster-updates main contrib non-free
-# backports repository
-deb http://deb.debian.org/debian/ buster-backports main contrib non-free
-deb-src http://deb.debian.org/debian/ buster-backports main contrib non-free
-#
-# THIRD-PARTY REPOSITORIES
-#
-deb http://repository.spotify.com stable non-free' > /etc/apt/sources.list" &&
-			echo printf '#
-# DEBIAN REPOSITORIES
-#
-# main repository
-deb http://deb.debian.org/debian/ buster main non-free contrib
-deb-src http://deb.debian.org/debian/ buster main non-free contrib
-# security-updates repositories
-deb http://security.debian.org/debian-security buster/updates main contrib non-free
-deb-src http://security.debian.org/debian-security buster/updates main contrib non-free
-# updates repository
-deb http://deb.debian.org/debian/ buster-updates main contrib non-free
-deb-src http://deb.debian.org/debian/ buster-updates main contrib non-free
-# backports repository
-deb http://deb.debian.org/debian/ buster-backports main contrib non-free
-deb-src http://deb.debian.org/debian/ buster-backports main contrib non-free
-#
-# THIRD-PARTY REPOSITORIES
-#
-deb http://repository.spotify.com stable non-free
-deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' > /etc/apt/sources.list &&
-			apt update
-			pressanykey
-			nextitem="."
-		elif [ "${sel}" = "${txtvirtualizationsetup_updategrub}" ]; then
-			echo update-grub
-			update-grub
-			pressanykey
-			nextitem="."
-		elif [ "${sel}" = "${txtvirtualizationsetup_cpupinning}" ]; then
-    			while true; do
-        			read -p "Before doing CPU Pinning, from which brand is your CPU? [intel/amd]: " input
-        			case $input in
-            				[intel]* ) echo "printf '# If you change this file, run 'update-grub' afterwards to update
-# /boot/grub/grub.cfg.
-# For full documentation of the options in this file, see:
-#   info -f grub -n 'Simple configuration'
-GRUB_DEFAULT=0
-GRUB_TIMEOUT=5
-GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
-GRUB_CMDLINE_LINUX_DEFAULT='quiet splash intel_iommu=on iommu=pt isolcpus=0,1 nohz_full=0,1 rcu_nocbs=0,1'
-GRUB_CMDLINE_LINUX=''
-# Uncomment to enable BadRAM filtering, modify to suit your needs
-# This works with Linux (no patch required) and with any kernel that obtains
-# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
-#GRUB_BADRAM='0x01234567,0xfefefefe,0x89abcdef,0xefefefef'
-# Uncomment to disable graphical terminal (grub-pc only)
-#GRUB_TERMINAL=console
-# The resolution used on graphical terminal
-# note that you can use only modes which your graphic card supports via VBE
-# you can see them in real GRUB with the command 'vbeinfo'
-#GRUB_GFXMODE=640x480
-# Uncomment if you do not want GRUB to pass 'root=UUID=xxx' parameter to Linux
-#GRUB_DISABLE_LINUX_UUID=true
-# Uncomment to disable generation of recovery mode menu entries
-#GRUB_DISABLE_RECOVERY='true'
-# Uncomment to get a beep at grub start
-#GRUB_INIT_TUNE='480 440 1'' > /etc/default/grub"; printf '# If you change this file, run "update-grub" afterwards to update
+options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf"; echo "update-grub"; echo "update-initramfs -u -k all"; echo apt install -yy qemu-kvm virt-manager bridge-utils ovmf; cp /etc/default/grub /etc/default/grub.backup; cp /etc/apt/sources.list /etc/apt/sources.list.backup ; cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup; printf '# If you change this file, run "update-grub" afterwards to update
 # /boot/grub/grub.cfg.
 # For full documentation of the options in this file, see:
 #   info -f grub -n "Simple configuration"
 GRUB_DEFAULT=0
 GRUB_TIMEOUT=5
 GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on iommu=pt isolcpus=0,1 nohz_full=0,1 rcu_nocbs=0,1"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on iommu=pt isolcpus=2,3,4,5 nohz_full=2,3,4,5 rcu_nocbs=2,3,4,5 default_hugepagesz=1G hugepagesz=1G hugepages=16 rd.driver.pre=vfio-pci video=efifb:off"
 GRUB_CMDLINE_LINUX=""
 # Uncomment to enable BadRAM filtering, modify to suit your needs
 # This works with Linux (no patch required) and with any kernel that obtains
@@ -467,39 +472,20 @@ GRUB_CMDLINE_LINUX=""
 # Uncomment to disable generation of recovery mode menu entries
 #GRUB_DISABLE_RECOVERY="true"
 # Uncomment to get a beep at grub start
-#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub ; break;;
-            				[amd]* ) echo "printf '# If you change this file, run 'update-grub' afterwards to update
+#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub"; echo "printf 'options kvm_intel nested=1
+options kvm-intel enable_shadow_vmcs=1
+options kvm-intel enable_apicv=1
+options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf; update-grub; update-initramfs -u -k all; break
+            	;;
+        	"AMD")
+				echo "apt install -yy qemu-kvm virt-manager bridge-utils ovmf"; echo "cp /etc/default/grub /etc/default/grub.backup"; echo "cp /etc/apt/sources.list /etc/apt/sources.list.backup"; echo "cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup"; echo "printf '# If you change this file, run "update-grub" afterwards to update
 # /boot/grub/grub.cfg.
 # For full documentation of the options in this file, see:
-#   info -f grub -n 'Simple configuration'
+#   info -f grub -n "Simple configuration"
 GRUB_DEFAULT=0
 GRUB_TIMEOUT=5
 GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
-GRUB_CMDLINE_LINUX_DEFAULT='quiet splash amd_iommu=on iommu=pt isolcpus=0,1 nohz_full=0,1 rcu_nocbs=0,1'
-GRUB_CMDLINE_LINUX=''
-# Uncomment to enable BadRAM filtering, modify to suit your needs
-# This works with Linux (no patch required) and with any kernel that obtains
-# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
-#GRUB_BADRAM='0x01234567,0xfefefefe,0x89abcdef,0xefefefef'
-# Uncomment to disable graphical terminal (grub-pc only)
-#GRUB_TERMINAL=console
-# The resolution used on graphical terminal
-# note that you can use only modes which your graphic card supports via VBE
-# you can see them in real GRUB with the command 'vbeinfo'
-#GRUB_GFXMODE=640x480
-# Uncomment if you do not want GRUB to pass 'root=UUID=xxx' parameter to Linux
-#GRUB_DISABLE_LINUX_UUID=true
-# Uncomment to disable generation of recovery mode menu entries
-#GRUB_DISABLE_RECOVERY='true'
-# Uncomment to get a beep at grub start
-#GRUB_INIT_TUNE='480 440 1'' > /etc/default/grub"; printf '# If you change this file, run "update-grub" afterwards to update
-# /boot/grub/grub.cfg.
-# For full documentation of the options in this file, see:
-#   info -f grub -n 'Simple configuration'
-GRUB_DEFAULT=0
-GRUB_TIMEOUT=5
-GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amd_iommu=on iommu=pt isolcpus=0,1 nohz_full=0,1 rcu_nocbs=0,1"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amd_iommu=on iommu=pt isolcpus=2,3,4,5 nohz_full=2,3,4,5 rcu_nocbs=2,3,4,5 default_hugepagesz=1G hugepagesz=1G hugepages=16 rd.driver.pre=vfio-pci video=efifb:off"
 GRUB_CMDLINE_LINUX=""
 # Uncomment to enable BadRAM filtering, modify to suit your needs
 # This works with Linux (no patch required) and with any kernel that obtains
@@ -516,19 +502,47 @@ GRUB_CMDLINE_LINUX=""
 # Uncomment to disable generation of recovery mode menu entries
 #GRUB_DISABLE_RECOVERY="true"
 # Uncomment to get a beep at grub start
-#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub ; break;;
-            				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
-        			esac
-    			done
-			pressanykey
-			nextitem="."
-		elif [ "${sel}" = "${txtvirtualizationsetup_updateinitramfs}" ]; then
-			echo update-initramfs -u -k all
-			update-initramfs -u -k all
-			pressanykey
-			nextitem="."
-		fi
-	fi
+#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub"; echo "printf 'options kvm_amd nested=1
+options kvm-amd enable_shadow_vmcs=1
+options kvm-amd enable_apicv=1
+options kvm-amd ept=1' > /etc/modprobe.d/kvm.conf"; echo "update-grub"; echo "update-initramfs -u -k all"; apt install -yy qemu-kvm virt-manager bridge-utils ovmf; cp /etc/default/grub /etc/default/grub.backup; cp /etc/apt/sources.list /etc/apt/sources.list.backup; cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup; printf '# If you change this file, run "update-grub" afterwards to update
+# /boot/grub/grub.cfg.
+# For full documentation of the options in this file, see:
+#   info -f grub -n "Simple configuration"
+GRUB_DEFAULT=0
+GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amd_iommu=on iommu=pt isolcpus=2,3,4,5 nohz_full=2,3,4,5 rcu_nocbs=2,3,4,5 default_hugepagesz=1G hugepagesz=1G hugepages=16 rd.driver.pre=vfio-pci video=efifb:off"
+GRUB_CMDLINE_LINUX=""
+# Uncomment to enable BadRAM filtering, modify to suit your needs
+# This works with Linux (no patch required) and with any kernel that obtains
+# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
+#GRUB_BADRAM="0x01234567,0xfefefefe,0x89abcdef,0xefefefef"
+# Uncomment to disable graphical terminal (grub-pc only)
+#GRUB_TERMINAL=console
+# The resolution used on graphical terminal
+# note that you can use only modes which your graphic card supports via VBE
+# you can see them in real GRUB with the command "vbeinfo"
+#GRUB_GFXMODE=640x480
+# Uncomment if you do not want GRUB to pass "root=UUID=xxx" parameter to Linux
+#GRUB_DISABLE_LINUX_UUID=true
+# Uncomment to disable generation of recovery mode menu entries
+#GRUB_DISABLE_RECOVERY="true"
+# Uncomment to get a beep at grub start
+#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub; printf 'options kvm_amd nested=1
+options kvm-amd enable_shadow_vmcs=1
+options kvm-amd enable_apicv=1
+options kvm-amd ept=1' > /etc/modprobe.d/kvm.conf; update-grub; update-initramfs -u -k all; break
+            	;;
+        	"Abort")
+	            echo "Aborted."
+				break
+            	;;
+        	*) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
+    	esac
+	done
+	pressanykey
+	nextitem="${txtreboot}"
 }
 
 fixesSetup(){
@@ -563,11 +577,11 @@ pressanykey(){
 }
 
 loadstrings_us(){
-	locale=en_US.UTF-8
+	locale="en_US.UTF-8"
 
 	lang_us="English (US)"
-	lang_es="Spanish (Spain) WIP"
-	langdesc="(By Liam Powell)"
+	lang_es="Spanish (Spain)"
+	langdesc="(By gfelipe099)"
 
 	txtexit="Exit"
 	txtreturn="Return"
@@ -578,22 +592,24 @@ loadstrings_us(){
 	txtlanguagedesc="(Default Language: English US)"
 
 	txtbase="Base"
-        txtbasedesc="[Install a DE (in headless mode)]"
-	txtsetupbase="Base Setup"	
-	txtsetupbaseselectdesktop="Select Desktop"
-	txtsetupbaseinstalldesktop="Install Desktop"
-	txtsetupbaseswapfile="Create Swap File"
+    txtbasedesc="(Install a desktop enviroment, create a swap file)"
+	txtbasesetup="Base Setup"	
+	txtsetupbaseselectdesktop="Select Desktop Enviroment"
+	txtsetupbaseinstalldesktop="Install Desktop Enviroment"
+	txtsetupbaseinstalldesktopdesc="(Install GNOME or KDE as your DE)"
+	txtsetupbaseswapfile="Create Swap Sile"
 	txtsetupbaseswapfilesize="Select Swap File Size"
-	txtsetupbaseswapfile4g="Create a 4G Swap File"
+	txtsetupbaseswapfile4g="Create a 4G swap file"
 	txtsetupbaseswapfile4gdesc="(Optimal for systems with >16G of RAM)"
-	txtsetupbaseswapfile8g="Create a 8G Swap File"
-	txtsetupbaseswapfile8gdesc="(Optimal for systems with >16G of RAM)"
+	txtsetupbaseswapfile8g="Create a 8G swap file"
+	txtsetupbaseswapfile8gdesc="(Optimal for systems with <16G of RAM)"
 
 	txtextras="Extras"
-	txtextrasdesc="(Tools, Drivers and Applications for Debian)"
+	txtextrasdesc="(Tools, drivers and applications for Debian)"
 	txtextrassetup="Extras Setup"
 	txtextrassetupx86_packages="1.- Add 32-bit support to APT"
-	txtextrassetup_bsystools="2.- Install Basic System Tools"
+	txtextrassetup_bsystools_gnome="2.- Install GNOME Basic System Tools"
+	txtextrassetup_bsystools_kde="2.- Install KDE Basic System Tools"
 	txtextrassetup_webbrowser="3.- Install Web Browser"
 	txtextrassetup_officesuite="4.- Install Office Suite"
 	txtextrassetup_gaming="5.- Install Gaming Software"
@@ -602,41 +618,32 @@ loadstrings_us(){
 	txtextrassetup_nvidia_dialog="Do you want to install the drivers for your NVIDIA graphics card (if any)? (reboot required) [Y/N]: "
 	txtextrassetup_amd_intel="8.- Install Mesa and VULKAN Drivers"
 	txtextrassetup_amd_intel_dialog="Do you want to install the Mesa and VULKAN drivers for your AMD graphics card or Intel iGPU (if any)? (restart recommended) [Y/N]: "
-	txtextrassetup_material_debian="9.- Install Materia GTK Theme and Papirus Icon Theme"
-	txtextrassetup_material_debian_dialog="Do you want to install the Materia GTK theme among the Papirus Icon Theme and the Roboto fonts?"
-
-	txtvirtualization="Virtualization"
-	txtvirtualizationdesc="(Install qemu-kvm, Enable Nested Virtualization, etc.)"
-	txtvirtualizationsetup="Virtualization Setup"
-	txtvirtualizationsetup_installpkgs="1.- Install Required Packages"
-	txtvirtualizationsetup_backupsysfiles="2.- Backup system files"
-	txtvirtualizationsetup_enableiommu="3.- Enable IOMMU"
-	txtvirtualizationsetup_enablenested="4.- Enable Nested Virtualization"
-	txtvirtualizationsetup_aptsourcelist="5.- Create APT sources.list File"
-	txtvirtualizationsetup_updategrub="6.- Update GRUB Config File"
-	txtvirtualizationsetup_updateinitramfs="7.- Update Boot Files"
-	txtvirtualizationsetup_cpupinning="8.- CPU Pinning (w/o HT)"
+	txtextrassetup_material_debian="9.- Install Material Debian"
+	txtextrassetup_material_debian_dialog="Do you want to install Material Debian?"
 	
+	txtvirtualization="Virtualization"
+	txtvirtualizationdesc="(Setup cpu pinning, nested virtualization, etc. for your PC)"
+
 	txtfixes="Fixes"
 	txtfixesdesc="(Common Fixes for Debian)"
 	txtfixes_fixwiredunmanaged="Fix Wired Unmanaged"
-	txtfixes_fixwiredunmanageddesc="(Sets ifupdown managed parameter to true of NM)"
 
 	txtreboot="Reboot"
 	txtrebootdesc="(Shutdown the computer and then start it up again)"
 
-	txttestedworking="Tested and working"
-	txtnottestedyet="Not tested yet"
+	txtmadeby="(by gfelipe099)"
+	txtmadeby_helpwanted="(Help Wanted)"
 
 	txtpressanykey="PRESS ANY KEY TO CONTINUE..."
+
 }
 
 loadstrings_es(){
-	locale=es_ES.UTF-8
+	locale="es_ES.UTF-8"
 
 	lang_us="Inglés (EE.UU.)"
 	lang_es="Español (España)"
-	langdesc="(Por Liam Powell)"
+	langdesc="(Por gfelipe099)"
 
 	txtexit="Salir"
 	txtreturn="Volver"
@@ -644,11 +651,11 @@ loadstrings_es(){
 
 	txtmainmenu="Menú principal"
 	txtlanguage="Cambiar idioma"
-	txtlanguagedesc="(Idioma por defecto: English US)"
+	txtlanguagedesc="(Idioma por defecto: Inglés EE.UU.)"
 
 	txtbase="Base"
-        txtbasedesc="[Instalar DE (en modo headless)]"
-	txtsetupbase="Instalación base"	
+    txtbasedesc="(Instalar entorno de escritorio, crear archivo de intercambio)"
+	txtbasesetup="Instalación base"	
 	txtsetupbaseselectdesktop="Seleccionar escritorio"
 	txtsetupbaseinstalldesktop="Instalar escritorio"
 	txtsetupbaseswapfile="Crear archivo de intercambio"
@@ -671,45 +678,38 @@ loadstrings_es(){
 	txtextrassetup_nvidia_dialog="¿Quieres instalar los controladores de tu tarjeta gráfica NVIDIA (si la hay)? (reinicio requerido) [Y/N]: "
 	txtextrassetup_amd_intel="8.- Instalar controladores de Mesa y VULKAN"
 	txtextrassetup_amd_intel_dialog="¿Quieres instalar los controladores de Mesa y VULKAN? (reinicio recomendado) [Y/N]: "
-	txtextrassetup_material_debian="9.- Instalar Materia GTK Theme, Papirus Icon Theme y Roboto Fonts Family"
+	txtextrassetup_material_debian="9.- Instalar Material Debian"
 	txtextrassetup_material_debian_dialog="¿Quieres instalar el tema Materia GTK, el tema de iconos Papirus y la familia de fuentes Roboto?"
 	
 
 	txtvirtualization="Virtualización"
 	txtvirtualizationdesc="(Instalar qemu-kvm, habilitar virtualización anidada, etc.)"
-	txtvirtualizationsetup="Instalación de virtualización"
-	txtvirtualizationsetup_installpkgs="1.- Instalar paquetes requeridos"
-	txtvirtualizationsetup_backupsysfiles="2.- Copia de seguridad de los archivos del sistema"
-	txtvirtualizationsetup_enableiommu="3.- Habilitar IOMMU"
-	txtvirtualizationsetup_enablenested="4.- Habilitar virtualización anidada"
-	txtvirtualizationsetup_aptsourcelist="5.- Crear archivo sources.list de APT"
-	txtvirtualizationsetup_updategrub="6.- Actualizar archivo de configuración GRUB"
-	txtvirtualizationsetup_updateinitramfs="7.- Actualizar archivos de arranque"
-	txtvirtualizationsetup_cpupinning="8.- CPU Pinning (sin HT)"
 	
 	txtfixes="Arreglos"
 	txtfixesdesc="(Arreglos comunes para Debian)"
 	txtfixes_fixwiredunmanaged="Arreglar Ethernet sin manejar por NetworkManager"
-	txtfixes_fixwiredunmanageddesc="(Establece el parámetro 'managed' de 'ifupdown' a 'true' de NM)"
 
 	txtreboot="Reiniciar"
-	txtrebootdesc="(Apaga el ordenador y entonces inicíalo otra vez)"
+	txtrebootdesc="(Apaga el ordenador y lo inicia otra vez)"
 
-	txttestedworking="Probado y funcionando"
-	txtnottestedyet="Aún sin probar"
+	txtmadeby="(by gfelipe099)"
+	txtmadeby_helpwanted="(Se busca ayuda)"
 
 	txtpressanykey="PRESIONA CUALQUIER TECLA PARA CONTINUAR..."
+
 }
 
 	loadstrings_us
+	prepareSystem
 	root
     else
     	echo -e "${boldText}${red}Sorry, ${distroInfo} is not supported yet."${normalText}
         exit 0
 fi
    else
-        echo -e "${boldText}${red}Sorry, you seems to be using: ${distroSystem}"${normalText}
-        echo -e "${boldText}${red}Debian-based distributions are not supported and won't be in the future."${normalText}
+        echo -e "${boldText}${red}Sorry, this script cannot proceed. Your system: ${distroSystem}"${normalText}
+        echo -e "${boldText}${yellow}For distro users: They are bulky and unstable, and so they are not supported and won't be in the future."${normalText}
+        echo -e "${boldText}${yellow}For old(old)stable release Debian users: These versions are not supported because this script only works with the lastest stable version."${normalText}
         exit 1
 fi
 # ------------------------------------------------- script end ------------------------------------------------- #
