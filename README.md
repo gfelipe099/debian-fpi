@@ -1,5 +1,5 @@
 # debian-fpi
-A modified version of archfi for Debian, which I called Debian Fast Post-Installer, or Debian FPI, where you can install a desktop enviroment (currently GNOME and KDE Plasma (under testing)); tools, drivers, applications and the ability to setup virtualization stuff.
+A modified version of archfi for Debian, which I called Debian Fast Post-Installer, or Debian FPI, where you can install a desktop enviroment (currently GNOME and KDE Plasma); tools, drivers, applications and the ability to setup virtualization stuff.
 
 ## Statement before using Debian FPI
 There are a few requirements which you have to do in order to use this script correctly or to even make it work correctly (this may change in the future):
