@@ -6,7 +6,7 @@
 # debian-fpi.sh file
 # For Debian GNU/Linux 10.2.0/10.3.0 (buster) desktop amd64
 #
-appTitle="Debian Fast Post-Installer Setup v20200423.2-sid (Sid/Unstable Build)"
+appTitle="Debian Fast Post-Installer Setup v20200423.4-sid (Sid/Unstable Build)"
 
 #
 # text formatting codes
@@ -24,6 +24,9 @@ if [ "$(whoami)" != "root" ]; then
     exit 0
 fi
 
+# install this package to check which OS is running
+apt install -yy lsb-release &>/dev/null
+
 # check if the OS is Debian
 # credits to https://unix.stackexchange.com/users/33967/joeytwiddle, https://danielgibbs.co.uk
 # source: https://unix.stackexchange.com/questions/6345/how-can-i-get-distribution-name-and-version-number-in-a-simple-shell-script, https://danielgibbs.co.uk/2013/04/bash-how-to-detect-os/
@@ -35,7 +38,6 @@ if [[ "$distroSystem" = "Debian GNU/Linux 10 (buster)" ]]; then
 	if [[ "$distroInfo" = "Debian 10.2 4.19.0-6-amd64" || "Debian 10.3 4.19.0-8-amd64" ]]; then
 # ------------------------------------------------- script beginning ------------------------------------------------- #
 root(){
-	cd /tmp
 	if [ "${1}" = "" ]; then
 		nextitem="."
 	else
@@ -90,6 +92,7 @@ root(){
 reboot(){
 	if (whiptail --backtitle "${appTitle}" --title "${txtreboot}" --yesno "${txtreboot} ?" --defaultno 0 0) then
 		clear
+		rm -rf *.deb
 		sudo reboot
 	fi
 }
@@ -112,41 +115,46 @@ changeLanguage(){
 }
 
 prepareSystem(){
+		echo "apt install -yy gnupg gnupg1 gnupg2"
     	echo "mkdir /usr/share/desktop-directories/"
 		echo "dpkg --add-architecture i386"
-		echo "sudo apt update -yy"
-		echo "sudo apt install -yy curl"
-		echo "curl -s https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -"
-		echo "curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add -"
-		echo "wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_10/Release.key -O- | sudo apt-key add -"
-		echo "sudo apt update -yy"
+		echo "apt update -yy"
+		echo "apt install -yy gdebi"
+		echo "apt install -yy curl"
+		echo "apt install -yy wget"
+		echo "curl -s https://brave-browser-apt-release.s3.brave.com/brave-core.asc | apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -"
+		echo "curl -sS https://download.spotify.com/debian/pubkey.gpg | apt-key add -"
+		echo "wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_10/Release.key -O- | apt-key add -"
+		echo "wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
+		echo "wget https://go.microsoft.com/fwlink/?LinkID=760868 -O code_amd64.deb"
+		echo "wget https://downloads.vivaldi.com/stable/vivaldi-stable_3.0.1874.23-1_amd64.deb"
+		echo "apt update -yy"
 		echo "printf '#
 # THIRD-PARTY REPOSITORIES
 #
 deb http://repository.spotify.com stable non-free
-deb http://repo.vivaldi.com/stable/deb/ stable main
 deb [arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main
-deb [arch=amd64] http://packages.microsoft.com/repos/vscode stable main
-deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main
 deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' > /etc/apt/sources.list.d/thirdparty.list"
-		echo -n "Please wait while your computer is being prepared ... "
-		mkdir /usr/share/desktop-directories/ &>/dev/null
-		dpkg --add-architecture i386 &>/dev/null
-		sudo apt update -yy &>/dev/null
-		sudo apt install -yy curl &>/dev/null
-		curl -s https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add - &>/dev/null
-		curl -sS https://download.spotify.com/debian/pubkey.gpg | sudo apt-key add - &>/dev/null
-		wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_10/Release.key -O- | sudo apt-key add - &>/dev/null
+		apt install -yy gnupg gnupg1 gnupg2
+		mkdir /usr/share/desktop-directories/
+		dpkg --add-architecture i386
+		apt update -yy
+		apt install -yy gdebi
+		apt install -yy curl
+		apt install -yy wget
+		curl -s https://brave-browser-apt-release.s3.brave.com/brave-core.asc | apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -
+		curl -sS https://download.spotify.com/debian/pubkey.gpg | apt-key add -
+		wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_10/Release.key -O- | apt-key add -
+		wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+		wget https://go.microsoft.com/fwlink/?LinkID=760868 -O code_amd64.deb
+		wget https://downloads.vivaldi.com/stable/vivaldi-stable_3.0.1874.23-1_amd64.deb
 		printf '#
 # THIRD-PARTY REPOSITORIES
 #
 deb http://repository.spotify.com stable non-free
-deb http://repo.vivaldi.com/stable/deb/ stable main
 deb [arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main
-deb [arch=amd64] http://packages.microsoft.com/repos/vscode stable main
-deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main
-deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' > /etc/apt/sources.list.d/thirdparty.list &>/dev/null
-		sudo apt update -yy &>/dev/null && echo -e "done" | echo -e "failed or already prepared"
+deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' > /etc/apt/sources.list.d/thirdparty.list
+		apt update -yy
 		pressanykey
 }
 
@@ -190,7 +198,7 @@ baseSetup(){
 		if [ "${sel}" = "${txtsetupbaseinstalldesktop}" ]; then
 			options=()
 			options+=("GNOME" "${txtmadeby}")
-			options+=("KDE Plasma" "${txtmadeby_helpwanted}")
+			options+=("KDE Plasma" "${txtmadeby}")
 			sel=$(whiptail --backtitle "${appTitle}" --title "${txtsetupbaseselectdesktop}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
 			"${options[@]}" \
 			3>&1 1>&2 2>&3)
@@ -203,7 +211,9 @@ baseSetup(){
 					nextitem="."
 				elif [ "${sel}" = "KDE Plasma" ]; then
 					echo "apt install -yy sddm*"
+					echo "apt purge -yy discover*"
 					apt install -yy sddm*
+					apt purge -yy discover*
 					pressanykey
 					nextitem="."
 				fi
@@ -221,6 +231,7 @@ extrasSetup(){
 	options+=("${txtextrassetup_officesuite}" "(Installs LibreOffice)")
 	options+=("${txtextrassetup_gaming}" "(Install software made to play games)")
 	options+=("${txtextrassetup_multimedia}" "(Install software for multimedia purposes)")
+	options+=("${txtextrassetup_developer}" "(Install developer software)")
 	options+=("${txtextrassetup_nvidia}" "(Installs NVIDIA propietary drivers)")
 	options+=("${txtextrassetup_amd_intel}" "(Installs Mesa and VULKAN open source drivers)")
 	options+=("${txtextrassetup_material_debian}" "(Install Material Design themes, icons and font families)")
@@ -235,10 +246,10 @@ extrasSetup(){
 		elif [ "${sel}" = "${txtextrassetup_bsystools_gnome}" ]; then
 			pkgs=""
 			options=()
-			options+=("gdebi" "Package Installer" on)
 			options+=("nautilus" "GNOME File Manager" on)
 			options+=("htop" "Command Line System Monitor" off)
 			options+=("gnome-terminal" "GNOME Terminal" on)
+			options+=("gedit" "GNOME Text Editor" on)
 			options+=("terminator" "Terminator Terminal" off)
 			options+=("gnome-disk-utility" "GNOME Disk Utility" on)
 			options+=("gnome-system-monitor" "GNOME System Monitor" on)
@@ -258,18 +269,21 @@ extrasSetup(){
 				pkgs="$pkgs $(echo $itm | sed 's/"//g')"
 			done
 			clear
-			echo "sudo apt update"
-			echo "sudo apt install -yy ${pkgs}"
-			sudo apt update
-			sudo apt install -yy ${pkgs}
+			echo "apt update"
+			echo "apt install -yy ${pkgs}"
+			apt update
+			apt install -yy ${pkgs}
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_bsystools_kde}" ]; then
 			pkgs=""
 			options=()
-			options+=("gdebi" "Package Installer" on)
+			options+=("plasma-nm" "Plasma applet for managing network connections" on)
 			options+=("dolphin" "KDE File Manager" on)
 			options+=("konsole" "KDE Terminal" on)
+            options+=("kate" "KDE's Advanced Text Editor" on)
+            options+=("kwin-x11" "Window Manager for X11" on)
+            options+=("kwin-wayland" "Window Manager for Wayland" on)
 			options+=("terminator" "Terminator Terminal" off)
 			options+=("gnome-disk-utility" "GNOME Disk Utility" on)
 			options+=("htop" "Command Line System Monitor" off)
@@ -290,10 +304,10 @@ extrasSetup(){
 				pkgs="$pkgs $(echo $itm | sed 's/"//g')"
 			done
 			clear
-			echo "sudo apt update"
-			echo "sudo apt install -yy ${pkgs}"
-			sudo apt update
-			sudo apt install -yy ${pkgs}
+			echo "apt update"
+			echo "apt install -yy ${pkgs}"
+			apt update
+			apt install -yy ${pkgs}
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetupx86_packages}" ]; then
@@ -303,10 +317,10 @@ extrasSetup(){
 			pkgs=""
 			options=()
 			options+=("firefox-esr" "Firefox Extended Support Release (GTK)" on)
+			options+=("brave-browser" "Chromium Based Privacy-Focused Web Browser (GTK)" off)
+			options+=("chromium" "Chromium Web Browser (GTK)" off)
 			options+=("vivaldi" "Chromium Based Web Browser (GTK)" off)
 			options+=("google-chrome-stable" "Google Chrome Web Browser (GTK)" off)
-			options+=("brave" "Chromium Based Privacy-Focused Web Browser (GTK)" off)
-			options+=("chromium" "Chromium Web Browser (GTK)" off)
 			sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_webbrowser}" --checklist "" 0 0 0 \
 				"${options[@]}" \
 				3>&1 1>&2 2>&3)
@@ -317,10 +331,18 @@ extrasSetup(){
 				pkgs="$pkgs $(echo $itm | sed 's/"//g')"
 			done
 			clear
-			echo "sudo apt update"
-			echo "sudo apt install -yy ${pkgs}"
-			sudo apt update
-			sudo apt install -yy ${pkgs}
+			echo "apt update"
+			echo "apt install -yy ${pkgs}"
+			apt update
+			apt install -yy ${pkgs}
+			if [[ ${pkgs} == *"google-chrome-stable"* ]]; then
+				echo "gdebi google-chrome-stable_current_amd64.deb"
+				gdebi -n google-chrome-stable_current_amd64.deb
+			fi
+			if [[ ${pkgs} == *"vivaldi"* ]]; then
+				echo "gdebi vivaldi-stable_3.0.1874.23-1_amd64.deb"
+				gdebi -n vivaldi-stable_3.0.1874.23-1_amd64.deb
+			fi
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_officesuite}" ]; then
@@ -344,13 +366,93 @@ extrasSetup(){
 				pkgs="$pkgs $(echo $itm | sed 's/"//g')"
 			done
 			clear
-			echo "sudo apt update"
-			echo "sudo apt install -yy ${pkgs}"
-			sudo apt update
-			sudo apt install -yy ${pkgs}
+			echo "apt update"
+			echo "apt install -yy ${pkgs}"
+			apt update
+			apt install -yy ${pkgs}
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_multimedia}" ]; then
+			pkgs=""
+			options=()
+			options+=("gimp" "GNU Image Manipulation Image (GTK)" off)
+			options+=("spotify-client" "Music Streaming Application (GTK)" off)
+			options+=("vlc" "VideoLAN's Media Player (VLC) (QT)" off)
+			options+=("vlc-data" "Common data for VLC" off)
+			options+=("totem" "GNOME Video Player (QT)" off)
+			sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_multimedia}" --checklist "" 0 0 0 \
+				"${options[@]}" \
+				3>&1 1>&2 2>&3)
+			if [ ! "$?" = "0" ]; then
+				return 1
+			fi
+			for itm in $sel; do
+				pkgs="$pkgs $(echo $itm | sed 's/"//g')"
+			done
+			clear
+			echo "su apt update -yy"
+			echo "apt install -yy ${pkgs}"
+			apt update -yy
+			apt install -yy ${pkgs}
+			pressanykey
+			nextitem="."
+				elif [ "${sel}" = "${txtextrassetup_multimedia}" ]; then
+			pkgs=""
+			options=()
+			options+=("gimp" "GNU Image Manipulation Image (GTK)" off)
+			options+=("spotify-client" "Music Streaming Application (GTK)" off)
+			options+=("vlc" "VideoLAN's Media Player (VLC) (QT)" off)
+			options+=("vlc-data" "Common data for VLC" off)
+			options+=("totem" "GNOME Video Player (QT)" off)
+			sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_multimedia}" --checklist "" 0 0 0 \
+				"${options[@]}" \
+				3>&1 1>&2 2>&3)
+			if [ ! "$?" = "0" ]; then
+				return 1
+			fi
+			for itm in $sel; do
+				pkgs="$pkgs $(echo $itm | sed 's/"//g')"
+			done
+			clear
+			echo "apt update"
+			echo "apt install -yy ${pkgs}"
+			apt update
+			apt install ${pkgs}
+			pressanykey
+			nextitem="."
+		elif [ "${sel}" = "${txtextrassetup_developer}" ]; then
+			pkgs=""
+			options=()
+			options+=("code" "Microsoft Visual Studio Code (GTK)" off)
+			sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_developer}" --checklist "" 0 0 0 \
+				"${options[@]}" \
+				3>&1 1>&2 2>&3)
+			if [ ! "$?" = "0" ]; then
+				return 1
+			fi
+			for itm in $sel; do
+				pkgs="$pkgs $(echo $itm | sed 's/"//g')"
+			done
+			clear
+			echo "apt update -yy"
+			echo "apt install -yy ${pkgs}"
+			apt update -yy
+			apt install ${pkgs}
+			if [[ ${pkgs} == *"code" ]]; then
+				echo "apt install -yy $pkgs"
+				echo "gdebi -n code_amd64.deb"
+				apt install -yy $pkgs
+				gdebi -n code_amd64.deb
+			fi
+            if [[ ${pkgs} == *"vivaldi" ]]; then
+				echo "apt install -yy $pkgs"
+				echo "gdebi -n vivaldi-stable_3.0.1874.23-1_amd64.deb"
+				apt install -yy $pkgs
+				gdebi -n vivaldi-stable_3.0.1874.23-1_amd64.deb
+			fi
+			pressanykey
+			nextitem="."
+				elif [ "${sel}" = "${txtextrassetup_multimedia}" ]; then
 			pkgs=""
 			options=()
 			options+=("gimp" "GNU Image Manipulation Image (GTK)" off)
@@ -368,17 +470,17 @@ extrasSetup(){
 				pkgs="$pkgs $(echo $itm | sed 's/"//g')"
 			done
 			clear
-			echo "sudo apt update"
-			echo "sudo apt install -yy ${pkgs}"
-			sudo apt update
-			sudo apt install ${pkgs}
+			echo "apt update -yy"
+			echo "apt install -yy ${pkgs}"
+			apt update -yy
+			apt install ${pkgs}
 			pressanykey
 			nextitem="."
 		elif [ "${sel}" = "${txtextrassetup_nvidia}" ]; then
     			while true; do
         			read -p "${txtextrassetup_nvidia_dialog}" input
         			case $input in
-            				[Yy]* ) sleep 2; echo "sudo apt update"; echo "sudo apt install -yy nvidia-driver"; sudo apt update; sudo apt install -yy nvidia-driver; break;;
+            				[Yy]* ) sleep 2; echo "apt update"; echo "apt install -yy nvidia-driver"; apt update; apt install -yy nvidia-driver; break;;
             				[Nn]* ) break;;
             				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
         			esac
@@ -389,7 +491,7 @@ extrasSetup(){
     			while true; do
         			read -p "${txtextrassetup_amd_intel_dialog}" input
         			case $input in
-            				[Yy]* ) sleep 2; echo "sudo apt update -yy"; echo "sudo apt install -yy libgl1-mesa-dri:i386 mesa-vulkan-drivers mesa-vulkan-drivers:i386"; sudo apt update; sudo apt install -yy libgl1-mesa-dri:i386 mesa-vulkan-drivers mesa-vulkan-drivers:i386; break;;
+            				[Yy]* ) sleep 2; echo "apt update -yy"; echo "apt install -yy libgl1-mesa-dri:i386 mesa-vulkan-drivers mesa-vulkan-drivers:i386"; apt update; apt install -yy libgl1-mesa-dri:i386 mesa-vulkan-drivers mesa-vulkan-drivers:i386; break;;
             				[Nn]* ) break;;
             				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
         			esac
@@ -400,7 +502,7 @@ extrasSetup(){
     			while true; do
         			read -p "${txtextrassetup_material_debian_dialog}" input
         			case $input in
-            				[Yy]* ) sleep 2; echo "sudo apt update"; echo "sudo apt install -yy material-gtk-theme papirus-icon-theme gnome-tweaks"; sudo apt update; sudo apt install -yy material-gtk-theme papirus-icon-theme gnome-tweaks; break;;
+            				[Yy]* ) sleep 2; echo "apt update"; echo "apt install -yy materia-gtk-theme papirus-icon-theme gnome-tweaks gnome-shell-extensions fonts-roboto"; echo "rm -rf /usr/share/gnome-shell/extensions/alternate-tab@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/apps-menu@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/auto-move-windows@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/drive-menu@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/launch-new-instance@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/native-window-placement@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/places-menu@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/screenshot-window-sizer@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/window-list@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/windowsNavigator@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/workspace-indicator@gnome-shell-extensions.gcampax.github.com/"; apt update; apt install -yy materia-gtk-theme papirus-icon-theme gnome-tweaks gnome-shell-extensions fonts-roboto; rm -rf /usr/share/gnome-shell/extensions/alternate-tab@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/apps-menu@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/auto-move-windows@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/drive-menu@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/launch-new-instance@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/native-window-placement@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/places-menu@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/screenshot-window-sizer@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/window-list@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/windowsNavigator@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/workspace-indicator@gnome-shell-extensions.gcampax.github.com/; break;;
             				[Nn]* ) break;;
             				* ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
         			esac
@@ -614,12 +716,13 @@ loadstrings_us(){
 	txtextrassetup_officesuite="4.- Install Office Suite"
 	txtextrassetup_gaming="5.- Install Gaming Software"
 	txtextrassetup_multimedia="6.- Install Multimedia Software"
-	txtextrassetup_nvidia="7.- Install NVIDIA Drivers"
+	txtextrassetup_developer="7.- Install Developer Software"
+	txtextrassetup_nvidia="8.- Install NVIDIA Drivers"
 	txtextrassetup_nvidia_dialog="Do you want to install the drivers for your NVIDIA graphics card (if any)? (reboot required) [Y/N]: "
-	txtextrassetup_amd_intel="8.- Install Mesa and VULKAN Drivers"
+	txtextrassetup_amd_intel="9.- Install Mesa and VULKAN Drivers"
 	txtextrassetup_amd_intel_dialog="Do you want to install the Mesa and VULKAN drivers for your AMD graphics card or Intel iGPU (if any)? (restart recommended) [Y/N]: "
-	txtextrassetup_material_debian="9.- Install Material Debian"
-	txtextrassetup_material_debian_dialog="Do you want to install Material Debian?"
+	txtextrassetup_material_debian="10.- Install Material Debian for GNOME"
+	txtextrassetup_material_debian_dialog="Do you want to install Material Debian? [Y/N]: "
 	
 	txtvirtualization="Virtualization"
 	txtvirtualizationdesc="(Setup cpu pinning, nested virtualization, etc. for your PC)"
@@ -672,13 +775,14 @@ loadstrings_es(){
 	txtextrassetup_bsystools="2.- Instalar herramientas del sistema básicas"
 	txtextrassetup_webbrowser="3.- Instalar navegador web"
 	txtextrassetup_officesuite="4.- Instalar paquete ofimático"
-	txtextrassetup_gaming="5.- Install programas para jugar"
-	txtextrassetup_multimedia="6.- Install programas multimedia"
+	txtextrassetup_gaming="5.- Instalar programas para jugar"
+	txtextrassetup_multimedia="6.- Instalar programas multimedia"
+	txtextrassetup_developer="7.- Instalar programas de desarrollador"
 	txtextrassetup_nvidia="7.- Instalar controladores de NVIDIA"
 	txtextrassetup_nvidia_dialog="¿Quieres instalar los controladores de tu tarjeta gráfica NVIDIA (si la hay)? (reinicio requerido) [Y/N]: "
 	txtextrassetup_amd_intel="8.- Instalar controladores de Mesa y VULKAN"
 	txtextrassetup_amd_intel_dialog="¿Quieres instalar los controladores de Mesa y VULKAN? (reinicio recomendado) [Y/N]: "
-	txtextrassetup_material_debian="9.- Instalar Material Debian"
+	txtextrassetup_material_debian="9.- Instalar Material Debian para GNOME"
 	txtextrassetup_material_debian_dialog="¿Quieres instalar el tema Materia GTK, el tema de iconos Papirus y la familia de fuentes Roboto?"
 	
 
@@ -698,7 +802,7 @@ loadstrings_es(){
 	txtpressanykey="PRESIONA CUALQUIER TECLA PARA CONTINUAR..."
 
 }
-
+	rm -rf *.deb
 	loadstrings_us
 	prepareSystem
 	root
