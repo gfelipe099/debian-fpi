@@ -20,4 +20,4 @@ Copy and paste this command which will get you up and running:
 > sudo apt update && sudo apt install git && git clone https://github.com/gfelipe099/debian-fpi && cd debian-fpi/ && chmod a+x debian-fpi.sh && sudo ./debian-fpi.sh
 
 ## Why execute the script as sudo?
-Sudo permissions are required, because it modifies system related stuff. Although, I encourage you **to not use this script in your daily driver machine until it's declared "rock solid" stable**.
+Sudo permissions are required, because it modifies system related stuff. Although, I warn you: **DO NOT use this script in your daily driver machine until it's declared "rock solid" stable**.
