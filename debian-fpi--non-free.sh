@@ -6,7 +6,7 @@
 # debian-fpi--non-free.sh file
 # For Debian GNU/Linux 10.2.0/10.3.0 (buster) desktop amd64
 #
-appTitle="Debian Fast Post-Installer Setup v20200506.0-sid (Sid/Unstable Build)"
+appTitle="Debian Fast Post-Installer Setup v20200506.1-sid (Sid/Unstable Build)"
 
 #
 # text formatting codes
