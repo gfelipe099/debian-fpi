@@ -212,13 +212,26 @@ systemReadiness(){
 		wget -q https://github.com/popcorn-official/popcorn-desktop/releases/download/v0.4.4/Popcorn-Time-0.4.4-amd64.deb &>/dev/null
 		sleep 21.5
 
+		echo -e "XXX\n98\nCleaning APT file '/etc/apt/sources.list'...\nXXX"
+		printf '#
+# DEBIAN REPOSITORIES
+#
+deb http://deb.debian.org/debian/ buster main non-free contrib
+deb-src http://deb.debian.org/debian/ buster main non-free contrib
+deb http://security.debian.org/debian-security buster/updates main contrib non-free
+deb-src http://security.debian.org/debian-security buster/updates main contrib non-free
+deb http://deb.debian.org/debian/ buster-updates main contrib non-free
+deb-src http://deb.debian.org/debian/ buster-updates main contrib non-free
+deb http://deb.debian.org/debian/ buster-backports main contrib non-free
+deb-src http://deb.debian.org/debian/ buster-backports main contrib non-free' > /etc/apt/sources.list
+
 		echo -e "XXX\99\nAdding third-party repositories to APT and updating cache...\nXXX"
 		printf '#
 # THIRD-PARTY REPOSITORIES
 #
 deb http://repository.spotify.com stable non-free
 deb [arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main
-deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' > /etc/apt/sources.list.d/thirdparty.list &>/dev/null
+deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./' > /etc/apt/sources.list.d/thirdparty.list
 		apt update -yy &>/dev/null
 		sleep 10.5
 
@@ -259,7 +272,7 @@ baseSetup(){
 				sleep 1
 
 				echo -e "XXX\n100\nAdding swap entry to '/etc/fstab'... \nXXX"
-				echo "/swapfile swap swap sw 0 0" >> /etc/fstab &>/dev/null
+				echo "/swapfile swap swap sw 0 0" >> /etc/fstab
 				sleep 1
 			} | whiptail --backtitle "${appTitle}" --title "${txtsetupbaseswapfile4g}" --gauge "Loading..." 8 70 0
 			nextitem="."
@@ -283,7 +296,7 @@ baseSetup(){
 				sleep 1
 
 				echo -e "XXX\n100\nAdding swap entry to '/etc/fstab'... \nXXX"
-				echo "/swapfile swap swap sw 0 0" >> /etc/fstab &>/dev/null
+				echo "/swapfile swap swap sw 0 0" >> /etc/fstab
 				sleep 1
 			} | whiptail --backtitle "${appTitle}" --title "${txtsetupbaseswapfile8g}" --gauge "Please wait..." 8 70 0
 			nextitem="."
@@ -554,7 +567,7 @@ extrasSetup(){
 		elif [ "${sel}" = "${txtextrassetup_gaming}" ]; then
 			pkgs=""
 			options=()
-			options+=("steam" "Valve Video Game Digital Platform (GTK)" off)
+			# options+=("steam" "Valve Video Game Digital Platform (GTK)" off)
 			options+=("pcsx2" "PlayStation 2 (PS2) Emulator (GTK)" off)
 			options+=("lutris" "Open Gaming Platform (GTK)" off)
 			sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_gaming}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
@@ -648,8 +661,7 @@ extrasSetup(){
 				apt-get install -yy ${pkgs} &>/dev/null
 
 				if [[ ${pkgs} == *"code"* ]]; then
-					echo "gdebi -n code_amd64.deb"
-					apt-get install -yy $pkgs
+					apt-get install -yy $pkgs &>/dev/null
 					gdebi -n code_amd64.deb
 				fi
 				
