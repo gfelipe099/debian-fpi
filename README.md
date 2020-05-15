@@ -14,7 +14,7 @@ You explicitly need to:
 
 > **Disallow, not use or disable the root account upon the installation or the script will fail in some areas.**
 
-> **Allow the use of non-free and contrib software.**
+> **Disallow the use of non-free and contrib software.**
 
 > **Deselect everything from the tasksel part: Debian desktop enviroment, printer software and basic system utilities. The script will handle that after.**
 
