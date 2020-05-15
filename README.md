@@ -1,5 +1,8 @@
 # debian-fpi
-A modified version of archfi for Debian, which I called Debian Fast Post-Installer, or Debian FPI, where you can install a desktop enviroment (currently GNOME and KDE Plasma); tools, drivers, applications and the ability to setup virtualization stuff.
+A modified version of archfi for Debian, which I called Debian Fast Post-Installer, or Debian FPI, where you can install a desktop enviroment (currently GNOME and KDE Plasma); tools, drivers, applications, fix common issues and/or setup virtualization capabilities.
+
+**All of the packages are delivered within Debian main repository only, 'contrib' and 'non-free' repositories were removed from this open-source edition.**
+
 
 ## Statement before using Debian FPI
 There are a few requirements which you have to do in order to use this script correctly or to even make it work correctly (this may change in the future):
@@ -20,4 +23,4 @@ Copy and paste this command which will get you up and running:
 > sudo apt update && sudo apt install git && git clone https://github.com/gfelipe099/debian-fpi && cd debian-fpi/ && chmod a+x debian-fpi.sh && sudo ./debian-fpi.sh
 
 ## Why execute the script as sudo?
-Sudo permissions are required, because it modifies system related stuff. Although, I warn you: **DO NOT use this script in your daily driver machine until it's declared "rock solid" stable**.
+Sudo permissions are required, because it modifies system settings.
