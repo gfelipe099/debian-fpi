@@ -6,7 +6,7 @@
 # debian-fpi.sh file
 # For Debian GNU/Linux 10.2/10.3/10.4 (buster) desktop amd64
 #
-appTitle="Debian Fast Post-Installer Setup v202005015-stable (Release Build)"
+appTitle="Debian Fast Post-Installer Setup v202005016-stable (Release Build)"
 
 #
 # text formatting codes
@@ -41,13 +41,6 @@ distroInfo="Debian $(cat /etc/debian_version) $(uname -r)"
 distroSystem="$(lsb_release -ds)"
 
 root(){
-    #
-    # credits to: https://stackoverflow.com/users/1343979/bass
-    # source: https://stackoverflow.com/questions/46619539/changing-colours-in-whiptail
-    #
-    export NEWT_COLORS='root=,red'
-
-    if (whiptail --title "${txtdisclaimer}" --fb --yes-button "${txtaccept}" --no-button "${txtrefuse}" --yesno "${txtdisclaimerdesc}" 14 90 --defaultno); then
         if [[ "$distroSystem" = "Debian GNU/Linux 10 (buster)" ]]; then
             if [[ "$distroInfo" = "Debian 10.2 4.19.0-6-amd64" || "Debian 10.3 4.19.0-8-amd64" || "Debian 10.4 4.19.0-8-amd64" ]]; then
                 mainMenu
@@ -59,9 +52,6 @@ root(){
             whiptail --title "${txtunsupportedsystem}" --fb --ok-button "${txtok}" --msgbox "${txtunsupportedsystemdesc}" 13 90
             exit 1
         fi
-    else
-        exit 0
-    fi
 }
 
 chooseLanguage(){
@@ -71,12 +61,15 @@ chooseLanguage(){
     #
     export NEWT_COLORS='root=,black'
     language=$(whiptail --inputbox "${chooselanguage}" 12 85 en --fb --ok-button "${txtok}" --nocancel --title "Choose Language - Elegir idioma" 3>&1 1>&2 2>&3)
-    if [ $language = en ]; then
-        loadstrings_us
-        root
-    elif [ $language = es ]; then
-        loadstrings_es
-        root
+    if [ "$?" = "0" ]; then
+        clear
+        if [ $language = "en" ]; then
+            loadstrings_us
+            root
+        elif [ $language = "es" ]; then
+            loadstrings_es
+            root
+        fi
     fi
 }
 
@@ -84,7 +77,6 @@ chooseLanguage(){
     sel=$(whiptail --backtitle "${appTitle}" --title "${txtlanguage}" --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
         "${lang_us}" "${langdesc}" \
         "${lang_es}" "${langdesc}" \
-        "${options[@]}" \
         3>&1 1>&2 2>&3)
     if [ "$?" = "0" ]; then
         clear
@@ -166,7 +158,7 @@ systemReadiness(){
         apt-get upgrade -yy &>/dev/null
         sleep 16.5
 
-        echo -e "XXX\81\nGeneratin clean APT file '/etc/apt/sources.list'...\nXXX"
+        echo -e "XXX\81\nGenerating clean APT file '/etc/apt/sources.list'...\nXXX"
         printf '#
 # DEBIAN REPOSITORIES
 #
@@ -324,9 +316,10 @@ extrasSetup(){
             options+=("clamtk" "Graphical Front-end for Clam Antivirus" on)
             options+=("gcc" "GNU Compiler Collection" on)
             options+=("make" "Building Utility" on)
-            options+=("firmware-linux" "" on)
+            options+=("firmware-linux" "Open-source firmware for some devices" on)
             options+=("curl" "Command-Line Tool for Transferring Data" on)
             options+=("linux-headers-$(uname -r)" "Linux Headers Files" on)
+            options+=("build-essentials" "Tools required for building from source" on)
             sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_gnome}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
                 "${options[@]}" \
                 3>&1 1>&2 2>&3)
