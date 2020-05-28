@@ -20,7 +20,7 @@ You explicitly need to:
 
 ## How to use
 Copy and paste this command which will get you up and running:
-> sudo apt update && sudo apt install wget && wget -q https://raw.githubusercontent.com/gfelipe099/debian-fpi/master/debian-fpi.sh && chmod a+x debian-fpi.sh && sudo ./debian-fpi.sh
+> sudo apt update -y && sudo apt install -y wget && wget -q https://raw.githubusercontent.com/gfelipe099/debian-fpi/master/debian-fpi.sh && chmod a+x debian-fpi.sh && sudo ./debian-fpi.sh
 
 ## Why to execute the script as sudo?
 Sudo permissions are required, because it modifies system settings.
