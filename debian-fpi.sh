@@ -63,10 +63,10 @@ chooseLanguage(){
     language=$(whiptail --inputbox "${chooselanguage}" 12 85 en --fb --ok-button "${txtok}" --nocancel --title "Choose Language - Elegir idioma" 3>&1 1>&2 2>&3)
     if [ "$?" = "0" ]; then
         clear
-        if [ $language = "en" ]; then
+        if [ ${language} = "en" ]; then
             loadstrings_us
             root
-        elif [ $language = "es" ]; then
+        elif [ ${language} = "es" ]; then
             loadstrings_es
             root
         fi
@@ -241,7 +241,7 @@ baseSetup(){
             options=()
             options+=("GNOME" "${txtmadeby}")
             options+=("KDE Plasma" "${txtmadeby}")
-            options+=("Xfce" "${txtmadeby_helpwanted}")
+            options+=("Xfce" "${txtmadeby_wip}")
             sel=$(whiptail --backtitle "${appTitle}" --title "${txtsetupbaseselectdesktop}" --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
             "${options[@]}" \
             3>&1 1>&2 2>&3)
@@ -272,10 +272,10 @@ baseSetup(){
             elif [ "${sel}" = "Xfce" ]; then
                 {
                     sleep 1
-                    echo -e "XXX\n50\nInstalling Xfce Display Manager... \nXXX"
+                    echo -e "XXX\n50\nInstalling Xfce core packages... \nXXX"
                     apt install -yy xfwm4 xfdesktop4 xfce4-panel xfce4-panel xfce4-settings xfce4-power-manager xfce4-session xfconf xfce4-notifyd &>/dev/null
                     sleep 60
-                    echo -e "XXX\n100\Xfce Display Manager was installed successfully. \nXXX"
+                    echo -e "XXX\n100\Xfce core packages were successfully installed. \nXXX"
                     sleep 5
                 } | whiptail --backtitle "${appTitle}" --title "${txtsetupbaseinstalldesktop}" --gauge "Please wait..." 8 70 0
                 nextitem="."
@@ -288,6 +288,7 @@ fi
 extrasSetup(){
     options=()
     options+=("${txtextrassetup_sysreadiness}" "(Required for the latest updates)")
+    options+=("${txtextrassetup_bsystools}" "(Install basic system tools)")
     options+=("${txtextrassetup_bsystools_gnome}" "(Install GNOME basic tools)")
     options+=("${txtextrassetup_bsystools_kde}" "(Install KDE basic tools)")
     options+=("${txtextrassetup_bsystools_xfce}" "(Install XFCE basic tools)")
@@ -297,7 +298,7 @@ extrasSetup(){
     options+=("${txtextrassetup_gaming}" "(Install software made to play games)")
     options+=("${txtextrassetup_multimedia}" "(Install software for multimedia purposes)")
     options+=("${txtextrassetup_amd_intel}" "(Install Mesa and VULKAN open source drivers)")
-    options+=("${txtextrassetup_material_debian}" "(Install a set of themes, icons and font families)")
+    options+=("${txtextrassetup_material_debian}" "(Installs material focused themes, icons and fonts)")
     sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup}" --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
         "${options[@]}" \
         3>&1 1>&2 2>&3)
@@ -387,7 +388,6 @@ extrasSetup(){
             options+=("kate" "KDE's Advanced Text Editor" on)
             options+=("kwin-x11" "Window Manager for X11" on)
             options+=("kwin-wayland" "Window Manager for Wayland" on)
-            options+=("terminator" "Terminator Terminal" off)
             options+=("gparted" "GNOME Partition Editor" on)
             options+=("ksysguard" "KDE System Monitor" on)
             sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_kde}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
@@ -431,7 +431,6 @@ extrasSetup(){
             options+=("xfwm4-themes" "Theme files for xfwm4" on)
             options+=("xfburn" "CD-burner Application for Xfce" off)
             options+=("orage" "Calendar for Xfce" off)
-            options+=("terminator" "Terminator Terminal" off)
             sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_xfce}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
                 "${options[@]}" \
                 3>&1 1>&2 2>&3)
@@ -494,8 +493,8 @@ extrasSetup(){
 
                 echo -e "XXX\n50\nInstalling and configuring office suite software... \nXXX"
                 apt-get install -yy libreoffice &>/dev/null
-                
                 sleep 50
+                
                 echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
                 sleep 5
             } | whiptail --backtitle "${appTitle}" --title "${txtextrassetup_officesuite}" --gauge "Loading..." 8 70 0
@@ -858,9 +857,9 @@ loadstrings_us(){
     txtsetupbaseinstalldesktop="Install desktop enviroment"
     txtsetupbaseinstalldesktopdesc="(Install GNOME, KDE or Xfce)"
     txtsetupbaseswapfile4g="Create a 4 GiB swap file"
-    txtsetupbaseswapfile4gdesc="(Optimal for systems with <=16 GiB of RAM)"
+    txtsetupbaseswapfile4gdesc="(Optimal for systems with >=16 GiB of RAM)"
     txtsetupbaseswapfile8g="Create a 8 GiB swap file"
-    txtsetupbaseswapfile8gdesc="(Optimal for systems with >16 GiB of RAM)"
+    txtsetupbaseswapfile8gdesc="(Optimal for systems with <16 GiB of RAM)"
 
     txtsysreadiness="System Readiness"
 
@@ -868,15 +867,16 @@ loadstrings_us(){
     txtextrasdesc="(Tools, drivers and applications for Debian)"
     txtextrassetup="Extras Setup"
     txtextrassetup_sysreadiness="Run system readiness"
+    txtextrassetup_bsystools_gnome="Install basic system tools"
     txtextrassetup_bsystools_gnome="Install Basic System Tools (GNOME)"
-    txtextrassetup_bsystools_kde="Install Basic System Tools (KDE)"
-    txtextrassetup_bsystools_xfce="Install Basic System Tools (Xfce)"
-    txtextrassetup_bsystools_xfce_plugins="Install Basic Plugins (Xfce)"
-    txtextrassetup_webbrowser="1.- Install Web Browser"
-    txtextrassetup_officesuite="2.- Install Office Suite"
-    txtextrassetup_gaming="3.- Install Gaming Software"
-    txtextrassetup_multimedia="4.- Install Multimedia Software"
-    txtextrassetup_amd_intel="5.- Install Mesa and VULKAN Drivers"
+    txtextrassetup_bsystools_kde="Install basic system tools (KDE)"
+    txtextrassetup_bsystools_xfce="Install basic system tools (Xfce)"
+    txtextrassetup_bsystools_xfce_plugins="Install basic plugins (Xfce)"
+    txtextrassetup_webbrowser="1.- Install web browser"
+    txtextrassetup_officesuite="2.- Install office suite"
+    txtextrassetup_gaming="3.- Install gaming software"
+    txtextrassetup_multimedia="4.- Install multimedia software"
+    txtextrassetup_amd_intel="5.- Install Mesa and Vulkan drivers"
     txtextrassetup_amd_intel_dialog="You are about to install Mesa and Vulkan drivers for AMD/Intel. Are you sure? [Y/N]: "
     txtextrassetup_material_debian="6.- Install Material Debian for GNOME"
     txtextrassetup_material_debian_dialog="You are about to install Material Debian for GNOME. Are you sure? [Y/N]: "
@@ -899,7 +899,7 @@ loadstrings_us(){
     txtrebootdesc="(Shutdown the computer and then start it up again)"
 
     txtmadeby="(by gfelipe099)"
-    txtmadeby_helpwanted="(Help Wanted)"
+    txtmadeby_helpwanted="(WIP)"
 
     txtpressanykey="PRESS ANY KEY TO CONTINUE..."
 
@@ -944,7 +944,7 @@ loadstrings_es(){
     txtsetupbaseinstalldesktop="Instalar entorno de escritorio"
     txtsetupbaseinstalldesktopdesc="(Instalar GNOME, KDE o Xfce)"
     txtsetupbaseswapfile4g="Crear archivo de intercambio de 4 GiB"
-    txtsetupbaseswapfile4gdesc="(Óptimo para sistemas con >16 GiB de RAM)"
+    txtsetupbaseswapfile4gdesc="(Óptimo para sistemas con >=16 GiB de RAM)"
     txtsetupbaseswapfile8g="Crear archivo de intercambio de 8 GiB"
     txtsetupbaseswapfile8gdesc="(Óptimo para sistemas con <16 GiB de RAM)"
 
@@ -986,12 +986,12 @@ loadstrings_es(){
     txtrebootdesc="(Apaga el ordenador y entonces inícialo de nuevo)"
 
     txtmadeby="(Por gfelipe099)"
-    txtmadeby_helpwanted="(Se busca ayuda)"
+    txtmadeby_wip="(WIP)"
 
     txtpressanykey="PRESIONA ALGUNA TECLA PARA CONTINUAR..."
 
 }
     loadstrings_us
-    #systemReadiness
+    systemReadiness
     chooseLanguage
 # ------------------------------------------------- script end ------------------------------------------------- #
