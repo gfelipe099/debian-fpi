@@ -6,7 +6,7 @@
 # debian-fpi.sh file
 # For Debian GNU/Linux 10.2/10.3/10.4 (buster) desktop amd64
 #
-appTitle="Debian Fast Post-Installer Setup v202005016-stable (Release Build)"
+appTitle="Debian Fast Post-Installer Setup v202000711.1-stable (Release Build)"
 
 #
 # text formatting codes
@@ -42,7 +42,7 @@ distroSystem="$(lsb_release -ds)"
 
 root(){
         if [[ "$distroSystem" = "Debian GNU/Linux 10 (buster)" ]]; then
-            if [[ "$distroInfo" = "Debian 10.2 4.19.0-6-amd64" || "Debian 10.3 4.19.0-8-amd64" || "Debian 10.4 4.19.0-8-amd64" ]]; then
+            if [[ "$distroInfo" = "Debian 10.2 4.19.0-6-amd64" || "Debian 10.3 4.19.0-8-amd64" || "Debian 10.4 4.19.0-9-amd64" ]]; then
                 mainMenu
             else
                 whiptail --title "${txtnotsupportedyet}" --fb --ok-button "${txtok}" --msgbox "${txtnotsupportedyetdesc}" 10 65
@@ -99,8 +99,10 @@ mainMenu(){
     sel=$(whiptail --backtitle "${appTitle}" --title "${txtmainmenu}" --fb --ok-button "${txtok}" --menu "${txtyoursys}${distroInfo}" --cancel-button "${txtexit}" 0 0 0 \
         "${txtlanguage}" "${txtlanguagedesc}" \
         "" "" \
-        "${txtbase}" "${txtbasedesc}" \
-        "${txtextras}" "${txtextrasdesc}" \
+        "${txtbasesetup}" "${txtbasedesc}" \
+        "${txtextrassetup}" "${txtextrasdesc}" \
+        "" "" \
+        "${txtbasicvirtualization}" "${txtbasicvirtualizationdesc}" \
         "${txtvirtualization}" "${txtvirtualizationdesc}" \
         "" "" \
         "${txtfixes}" "${txtfixesdesc}" \
@@ -109,18 +111,22 @@ mainMenu(){
         case ${sel} in
             "${txtlanguage}")
                 changeLanguage
-                nextitem="${txtbase}"
+                nextitem="${txtbasesetup}"
             ;;
-            "${txtbase}")
+            "${txtbasesetup}")
                 baseSetup
-                nextitem="${txtextras}"
+                nextitem="${txtextrassetup}"
             ;;
-            "${txtextras}")
+            "${txtextrassetup}")
                 extrasSetup
                 nextitem="${txtvirtualization}"
             ;;
             "${txtvirtualization}")
                 virtualizationSetup
+                nextitem="${txtfixes}"
+            ;;
+            "${txtbasicvirtualization}")
+                basicVirtualizationSetup
                 nextitem="${txtfixes}"
             ;;
             "${txtfixes}")
@@ -175,7 +181,7 @@ deb-src http://deb.debian.org/debian/ buster-backports main' > /etc/apt/sources.
         sleep 5
 
         break
-    } | whiptail --backtitle "${txtsysreadiness}" --gauge "Please wait..." 8 70 0
+    } | whiptail --backtitle "${txtextrassetup_sysreadiness}" --gauge "Please wait..." 8 70 0
 }
 
 baseSetup(){
@@ -273,7 +279,7 @@ baseSetup(){
                 {
                     sleep 1
                     echo -e "XXX\n50\nInstalling Xfce core packages... \nXXX"
-                    apt install -yy xfwm4 xfdesktop4 xfce4-panel xfce4-panel xfce4-settings xfce4-power-manager xfce4-session xfconf xfce4-notifyd &>/dev/null
+                    apt-get install -yy xfwm4 xfdesktop4 xfce4-panel xfce4-panel xfce4-settings xfce4-power-manager xfce4-session xfconf xfce4-notifyd &>/dev/null
                     sleep 60
                     echo -e "XXX\n100\Xfce core packages were successfully installed. \nXXX"
                     sleep 5
@@ -297,7 +303,7 @@ extrasSetup(){
     options+=("${txtextrassetup_officesuite}" "(Install LibreOffice)")
     options+=("${txtextrassetup_gaming}" "(Install software made to play games)")
     options+=("${txtextrassetup_multimedia}" "(Install software for multimedia purposes)")
-    options+=("${txtextrassetup_amd_intel}" "(Install Mesa and VULKAN open source drivers)")
+    options+=("${txtextrassetup_amd_intel}" "(Install Mesa and Vulkan open source drivers)")
     options+=("${txtextrassetup_material_debian}" "(Installs material focused themes, icons and fonts)")
     sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup}" --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
         "${options[@]}" \
@@ -310,16 +316,16 @@ extrasSetup(){
         elif [ "${sel}" = "${txtextrassetup_bsystools}" ]; then
             pkgs=""
             options=()
-            options+=("htop" "Command Line System Monitor" off)
-            options+=("terminator" "Terminator Terminal" off)
-            options+=("neofetch" "Command-line System Information Tool" off)
-            options+=("gufw" "Uncomplicated Firewall with GUI" on)
-            options+=("clamtk" "Graphical Front-end for Clam Antivirus" on)
-            options+=("gcc" "GNU Compiler Collection" on)
-            options+=("make" "Building Utility" on)
-            options+=("firmware-linux" "Open-source firmware for some devices" on)
-            options+=("curl" "Command-Line Tool for Transferring Data" on)
-            options+=("linux-headers-$(uname -r)" "Linux Headers Files" on)
+            options+=("htop" "Command-line system monitor" off)
+            options+=("terminator" "Terminator terminal" off)
+            options+=("neofetch" "Command-line system information tool" off)
+            options+=("gufw" "Graphical uncomplicated firewall" on)
+            options+=("clamtk" "Graphical front-end for Clam Antivirus" on)
+            options+=("gcc" "GNU C Compiler" on)
+            options+=("make" "Building utility" on)
+            options+=("firmware-linux" "Open-source firmware for devices" on)
+            options+=("curl" "Command-line tool to transferring data" on)
+            options+=("linux-headers-$(uname -r)" "Linux headers files" on)
             options+=("build-essentials" "Tools required for building from source" on)
             sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_gnome}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
                 "${options[@]}" \
@@ -349,12 +355,13 @@ extrasSetup(){
         elif [ "${sel}" = "${txtextrassetup_bsystools_gnome}" ]; then
             pkgs=""
             options=()
-            options+=("nautilus" "GNOME File Manager" on)
-            options+=("network-manager-openvpn-gnome" "OpenVPN plugin GNOME GUI" off)
-            options+=("gnome-terminal" "GNOME Terminal" on)
-            options+=("gedit" "GNOME Text Editor" on)
-            options+=("gnome-disk-utility" "GNOME Disk Utility" on)
-            options+=("gnome-system-monitor" "GNOME System Monitor" on)
+            options+=("nautilus" "GNOME file manager" on)
+            options+=("network-manager-openvpn-gnome" "OpenVPN plugin for GNOME" off)
+            options+=("gnome-terminal" "GNOME terminal" on)
+            options+=("gedit" "GNOME text editor" on)
+            options+=("clamtk-gnome" "ClamTk integration with GNOME" on)
+            options+=("gnome-disk-utility" "GNOME disk utility" on)
+            options+=("gnome-system-monitor" "GNOME system monitor" on)
             sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_gnome}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
                 "${options[@]}" \
                 3>&1 1>&2 2>&3)
@@ -383,13 +390,13 @@ extrasSetup(){
             pkgs=""
             options=()
             options+=("plasma-nm" "Plasma applet for managing network connections" on)
-            options+=("dolphin" "KDE File Manager" on)
-            options+=("konsole" "KDE Terminal" on)
-            options+=("kate" "KDE's Advanced Text Editor" on)
-            options+=("kwin-x11" "Window Manager for X11" on)
-            options+=("kwin-wayland" "Window Manager for Wayland" on)
-            options+=("gparted" "GNOME Partition Editor" on)
-            options+=("ksysguard" "KDE System Monitor" on)
+            options+=("dolphin" "KDE file manager" on)
+            options+=("konsole" "KDE terminal" on)
+            options+=("kate" "KDE advanced text editor" on)
+            options+=("kwin-x11" "Window manager for X11" on)
+            options+=("kwin-wayland" "Window manager for Wayland" on)
+            options+=("gparted" "GNOME partition editor" off)
+            options+=("ksysguard" "KDE system monitor" on)
             sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_kde}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
                 "${options[@]}" \
                 3>&1 1>&2 2>&3)
@@ -407,7 +414,7 @@ extrasSetup(){
                 apt-get upgrade -yy &>/dev/null
                 sleep 20
 
-                echo -e "XXX\n50\nInstalling and configuring KDE Basic System Tools... \nXXX"
+                echo -e "XXX\n50\nInstalling and configuring KDE basic system tools... \nXXX"
                 apt-get install -yy ${pkgs} &>/dev/null
                 sleep 50
 
@@ -418,18 +425,18 @@ extrasSetup(){
         elif [ "${sel}" = "${txtextrassetup_bsystools_xfce}" ]; then
             pkgs=""
             options=()
-            options+=("thunar" "File Manager for Xfce" on)
-            options+=("mousepad" "Xfce Text Editor" on)
-            options+=("ristretto" "Lightweight Picture-Viewer for Xfce" on)
-            options+=("xfce4-taskmanager" "Process Manager for Xfce" on)
-            options+=("xfce4-screenshooter" "Screenshots Utility for Xfce" off)
-            options+=("xfce4-terminal" "Xfce Terminal Emulator" on)
+            options+=("thunar" "File manager for Xfce" on)
+            options+=("mousepad" "Xfce text editor" on)
+            options+=("ristretto" "Lightweight picture-viewer for Xfce" on)
+            options+=("xfce4-taskmanager" "Process manager for Xfce" on)
+            options+=("xfce4-screenshooter" "Screenshots utility for Xfce" off)
+            options+=("xfce4-terminal" "Xfce terminal emulator" on)
             options+=("xfce4-notes" "Notes application for Xfce" off)
             options+=("xfce4-goodies" "Enhancements for Xfce" on)
-            options+=("xfce4-appfinder" "Application finder for Xfce" off)
-            options+=("xfce4-clipman" "Clipboard History Utility for Xfce" off)
+            options+=("xfce4-appfinder" "Application finder for Xfce" on)
+            options+=("xfce4-clipman" "Clipboard history utility for Xfce" off)
             options+=("xfwm4-themes" "Theme files for xfwm4" on)
-            options+=("xfburn" "CD-burner Application for Xfce" off)
+            options+=("xfburn" "CD-burner application for Xfce" off)
             options+=("orage" "Calendar for Xfce" off)
             sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_xfce}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
                 "${options[@]}" \
@@ -447,7 +454,7 @@ extrasSetup(){
                 apt-get -yy upgrade &>/dev/null
                 sleep 20
 
-                echo -e "XXX\n50\nInstalling and configuring Xfce Basic System Tools... \nXXX"
+                echo -e "XXX\n50\nInstalling and configuring Xfce basic system tools... \nXXX"
                 apt-get install -yy ${pkgs} &>/dev/null
                 sleep 50
 
@@ -458,8 +465,8 @@ extrasSetup(){
         elif [ "${sel}" = "${txtextrassetup_webbrowser}" ]; then
             pkgs=""
             options=()
-            options+=("firefox-esr" "Firefox Extended Support Release (GTK)" on)
-            options+=("chromium" "Chromium Web Browser (GTK)" off)
+            options+=("firefox-esr" "Mozilla's official web browser (Extended Support Release) (GTK)" on)
+            options+=("chromium" "Chromium open-source web browser (GTK)" off)
             sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_webbrowser}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
                 "${options[@]}" \
                 3>&1 1>&2 2>&3)
@@ -531,6 +538,7 @@ extrasSetup(){
             pkgs=""
             options=()
             options+=("gimp" "GNU Image Manipulation Image (GTK)" off)
+            options+=("obs-studio" "Software for recording and streaming" off)
             sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_multimedia}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
                 "${options[@]}" \
                 3>&1 1>&2 2>&3)
@@ -544,6 +552,7 @@ extrasSetup(){
             {
                 sleep 5
                 echo -e "XXX\n0\Checking for updates and installing them if any... \nXXX"
+                apt-get update &>/dev/null
                 apt-get -yy upgrade &>/dev/null
                 sleep 20
 
@@ -567,8 +576,8 @@ extrasSetup(){
 
                                         echo -e "XXX\n50\nInstalling and configuring Mesa/Vulkan open-source drivers... \nXXX"
                                         apt-get install -yy libgl1-mesa-dri:i386 mesa-vulkan-drivers mesa-vulkan-drivers:i386 &>/dev/null
-                
                                         sleep 30
+
                                         echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
                                         sleep 5
                                     } | whiptail --backtitle "${appTitle}" --title "${txtextrassetup_amd_intel}" --gauge "Loading..." 8 70 0; break;;
@@ -590,8 +599,8 @@ extrasSetup(){
                                         echo -e "XXX\n50\nInstalling and configuring Material Debian... \nXXX"
                                         apt-get install -yy materia-gtk-theme papirus-icon-theme gnome-tweaks gnome-shell-extensions fonts-roboto
                                         rm -rf /usr/share/gnome-shell/extensions/alternate-tab@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/apps-menu@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/auto-move-windows@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/drive-menu@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/launch-new-instance@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/native-window-placement@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/places-menu@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/screenshot-window-sizer@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/window-list@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/windowsNavigator@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/workspace-indicator@gnome-shell-extensions.gcampax.github.com/
-                
                                         sleep 30
+
                                         echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
                                         sleep 5
                                     } | whiptail --backtitle "${appTitle}" --title "${txtextrassetup_material_debian}" --gauge "Loading..." 8 70 0; break;;
@@ -604,14 +613,92 @@ extrasSetup(){
     fi
 }
 
-virtualizationSetup(){
+basicVirtualizationSetup(){
     # select menu
     # credits to https://askubuntu.com/users/877/paused-until-further-notice
     # source: https://askubuntu.com/questions/1705/how-can-i-create-a-select-menu-in-a-shell-script
     clear
-    cpubrand=$(whiptail --inputbox "${txtvirtualizationprompt}" 12 85 --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --title "${txtvirtualization}" 3>&1 1>&2 2>&3)
-    if [ ${cpubrand} = "intel" ]; then
-        apt-get install -yy qemu-kvm virt-manager bridge-utils ovmf &>/dev/null; cp /etc/default/grub /etc/default/grub.backup && cp /etc/apt/sources.list /etc/apt/sources.list.backup && cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup; printf '# If you change this file, run "update-grub" afterwards to update
+    consent=$(whiptail --inputbox "${txtvirtualizationprompt_warning}" 15 85 --fb --ok-button "${txtok}" --cancel-button "${txtabort}" --title "${txtvirtualization}" 3>&1 1>&2 2>&3)
+    if [ ${consent} = "yes" ]; then
+            cpubrand=$(whiptail --inputbox "${txtvirtualizationprompt}" 15 85 --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --title "${txtvirtualization}" 3>&1 1>&2 2>&3)
+            if [ ${cpubrand} = "intel" ]; then
+                apt-get install -yy qemu-kvm virt-manager bridge-utils ovmf &>/dev/null; cp /etc/default/grub /etc/default/grub.backup && cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup; printf '# If you change this file, run "update-grub" afterwards to update
+# /boot/grub/grub.cfg.
+# For full documentation of the options in this file, see:
+#   info -f grub -n "Simple configuration"
+GRUB_DEFAULT=0
+GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on iommu=pt"
+GRUB_CMDLINE_LINUX=""
+# Uncomment to enable BadRAM filtering, modify to suit your needs
+# This works with Linux (no patch required) and with any kernel that obtains
+# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
+#GRUB_BADRAM="0x01234567,0xfefefefe,0x89abcdef,0xefefefef"
+# Uncomment to disable graphical terminal (grub-pc only)
+#GRUB_TERMINAL=console
+# The resolution used on graphical terminal
+# note that you can use only modes which your graphic card supports via VBE
+# you can see them in real GRUB with the command "vbeinfo"
+#GRUB_GFXMODE=640x480
+# Uncomment if you do not want GRUB to pass "root=UUID=xxx" parameter to Linux
+#GRUB_DISABLE_LINUX_UUID=true
+# Uncomment to disable generation of recovery mode menu entries
+#GRUB_DISABLE_RECOVERY="true"
+# Uncomment to get a beep at grub start
+#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub; printf 'options kvm_intel nested=1
+options kvm-intel enable_shadow_vmcs=1
+options kvm-intel enable_apicv=1
+options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf; update-grub &>/dev/null; update-initramfs -u -k all &>/dev/null
+        fi
+
+        if [ ${cpubrand} = "amd" ]; then
+            apt-get install -yy qemu-kvm virt-manager bridge-utils ovmf &>/dev/null; cp /etc/default/grub /etc/default/grub.backup && cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup; printf '# If you change this file, run "update-grub" afterwards to update
+# /boot/grub/grub.cfg.
+# For full documentation of the options in this file, see:
+#   info -f grub -n "Simple configuration"
+GRUB_DEFAULT=0
+GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amd_iommu=on iommu=pt"
+GRUB_CMDLINE_LINUX=""
+# Uncomment to enable BadRAM filtering, modify to suit your needs
+# This works with Linux (no patch required) and with any kernel that obtains
+# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
+#GRUB_BADRAM="0x01234567,0xfefefefe,0x89abcdef,0xefefefef"
+# Uncomment to disable graphical terminal (grub-pc only)
+#GRUB_TERMINAL=console
+# The resolution used on graphical terminal
+# note that you can use only modes which your graphic card supports via VBE
+# you can see them in real GRUB with the command "vbeinfo"
+#GRUB_GFXMODE=640x480
+# Uncomment if you do not want GRUB to pass "root=UUID=xxx" parameter to Linux
+#GRUB_DISABLE_LINUX_UUID=true
+# Uncomment to disable generation of recovery mode menu entries
+#GRUB_DISABLE_RECOVERY="true"
+# Uncomment to get a beep at grub start
+#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub; printf 'options kvm_amd nested=1
+options kvm-amd enable_shadow_vmcs=1
+options kvm-amd enable_apicv=1
+options kvm-amd ept=1' > /etc/modprobe.d/kvm.conf; update-grub &>/dev/null; update-initramfs -u -k all &>/dev/null
+        fi
+        mainMenu
+    elif [ ${consent} = "no" ]; then
+        mainMenu
+    fi
+    nextitem="${txtreboot}"
+}
+
+fullVirtualizationSetup(){
+    # select menu
+    # credits to https://askubuntu.com/users/877/paused-until-further-notice
+    # source: https://askubuntu.com/questions/1705/how-can-i-create-a-select-menu-in-a-shell-script
+    clear
+    consent=$(whiptail --inputbox "${txtvirtualizationprompt_warning}" 15 85 --fb --ok-button "${txtok}" --cancel-button "${txtabort}" --title "${txtvirtualization}" 3>&1 1>&2 2>&3)
+    if [ ${consent} = "yes" ]; then
+            cpubrand=$(whiptail --inputbox "${txtvirtualizationprompt}" 15 85 --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --title "${txtvirtualization}" 3>&1 1>&2 2>&3)
+            if [ ${cpubrand} = "intel" ]; then
+                apt-get install -yy qemu-kvm virt-manager bridge-utils ovmf &>/dev/null; cp /etc/default/grub /etc/default/grub.backup && cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup; printf '# If you change this file, run "update-grub" afterwards to update
 # /boot/grub/grub.cfg.
 # For full documentation of the options in this file, see:
 #   info -f grub -n "Simple configuration"
@@ -638,11 +725,11 @@ GRUB_CMDLINE_LINUX=""
 #GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub; printf 'options kvm_intel nested=1
 options kvm-intel enable_shadow_vmcs=1
 options kvm-intel enable_apicv=1
-options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf; update-grub &>/dev/null; update-initramfs -u -k all &>/dev/null
-        mainMenu
-    fi
-    if [ ${cpubrand} = "amd" ]; then
-        apt-get install -yy qemu-kvm virt-manager bridge-utils ovmf &>/dev/null; cp /etc/default/grub /etc/default/grub.backup && cp /etc/apt/sources.list /etc/apt/sources.list.backup && cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup; printf '# If you change this file, run "update-grub" afterwards to update
+options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf; printf 'options vfio-pci ids=' > /etc/modprobe.d/vfio.conf; update-grub &>/dev/null; update-initramfs -u -k all &>/dev/null
+        fi
+
+        if [ ${cpubrand} = "amd" ]; then
+            apt-get install -yy qemu-kvm virt-manager bridge-utils ovmf &>/dev/null; cp /etc/default/grub /etc/default/grub.backup && cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup; printf '# If you change this file, run "update-grub" afterwards to update
 # /boot/grub/grub.cfg.
 # For full documentation of the options in this file, see:
 #   info -f grub -n "Simple configuration"
@@ -669,7 +756,10 @@ GRUB_CMDLINE_LINUX=""
 #GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub; printf 'options kvm_amd nested=1
 options kvm-amd enable_shadow_vmcs=1
 options kvm-amd enable_apicv=1
-options kvm-amd ept=1' > /etc/modprobe.d/kvm.conf; update-grub &>/dev/null; update-initramfs -u -k all &>/dev/null
+options kvm-amd ept=1' > /etc/modprobe.d/kvm.conf; printf 'options vfio-pci ids=' > /etc/modprobe.d/vfio.conf; update-grub &>/dev/null; update-initramfs -u -k all &>/dev/null
+        fi
+        mainMenu
+    elif [ ${consent} = "no" ]; then
         mainMenu
     fi
     nextitem="${txtreboot}"
@@ -704,10 +794,11 @@ managed=true' > /etc/NetworkManager/NetworkManager.conf
         elif [ "${sel}" = "${txtfixes_disablebluetoothertm}" ]; then
             {
                 sleep 1
+
                 echo -e "XXX\n50\Applying settings... \nXXX"
                 printf 'options bluetooth disable_ertm=1' > /etc/modprobe.d/bluetooth.conf
-
                 sleep 0.5
+
                 echo -e "XXX\n100\Settings applied. Returning to main menu...\nXXX"
                 sleep 5
             } | whiptail --backtitle "${appTitle}" --title "${txtfixes_disablebluetoothertm}" --gauge "Loading..." 8 70 0
@@ -715,6 +806,7 @@ managed=true' > /etc/NetworkManager/NetworkManager.conf
         elif [ "${sel}" = "${txtfixes_disablepulseaudioflatvolumes}" ]; then
             {
                 sleep 1
+
                 echo -e "XXX\n50\Applying settings... \nXXX"
 printf '# This file is part of PulseAudio.
 #
@@ -805,8 +897,8 @@ flat-volumes = no
 ; enable-deferred-volume = yes
 ; deferred-volume-safety-margin-usec = 8000
 ; deferred-volume-extra-delay-usec = 0' > /etc/pulse/daemon.conf
-
                 sleep 0.5
+
                 echo -e "XXX\n100\Settings applied. Returning to main menu...\nXXX"
                 sleep 5
             } | whiptail --backtitle "${appTitle}" --title "${txtfixes_disablepulseaudioflatvolumes}" --gauge "Loading..." 8 70 0
@@ -829,6 +921,7 @@ loadstrings_us(){
 
     txtaccept="Accept"
     txtrefuse="Refuse"
+    txtabort="Abort"
 
     txtnotsupportedyet="Unsupported Version"
     txtnotsupportedyetdesc="Sorry, the version ${distroInfo} is not supported yet."
@@ -850,9 +943,8 @@ loadstrings_us(){
     txtlanguage="Change Language"
     txtlanguagedesc="(Default Language: English US)"
 
-    txtbase="Base"
+    txtbasesetup="Base Setup"
     txtbasedesc="(Install a desktop enviroment, create a swap file)"
-    txtbasesetup="Base Setup"   
     txtsetupbaseselectdesktop="Select Desktop Enviroment"
     txtsetupbaseinstalldesktop="Install desktop enviroment"
     txtsetupbaseinstalldesktopdesc="(Install GNOME, KDE or Xfce)"
@@ -861,13 +953,11 @@ loadstrings_us(){
     txtsetupbaseswapfile8g="Create a 8 GiB swap file"
     txtsetupbaseswapfile8gdesc="(Optimal for systems with <16 GiB of RAM)"
 
-    txtsysreadiness="System Readiness"
-
-    txtextras="Extras"
-    txtextrasdesc="(Tools, drivers and applications for Debian)"
     txtextrassetup="Extras Setup"
-    txtextrassetup_sysreadiness="Run system readiness"
-    txtextrassetup_bsystools_gnome="Install basic system tools"
+    txtextrasdesc="(Tools, drivers and applications for Debian)"
+    txtextrassetup_sysreadiness="System Readiness"
+    txtextrassetup_sysreadinessdesc="Run system readiness"
+    txtextrassetup_bsystools="Install basic system tools"
     txtextrassetup_bsystools_gnome="Install Basic System Tools (GNOME)"
     txtextrassetup_bsystools_kde="Install basic system tools (KDE)"
     txtextrassetup_bsystools_xfce="Install basic system tools (Xfce)"
@@ -881,9 +971,14 @@ loadstrings_us(){
     txtextrassetup_material_debian="6.- Install Material Debian for GNOME"
     txtextrassetup_material_debian_dialog="You are about to install Material Debian for GNOME. Are you sure? [Y/N]: "
     
-    txtvirtualization="Virtualization"
-    txtvirtualizationdesc="(Setup CPU pinning, nested virtualization, etc.)"
-    txtvirtualizationprompt="Before beginning with the setup, I need to know which brand is your CPU from: intel or amd\n\nPlease, write it down below [intel/amd]: "
+    txtbasicvirtualization="Virtualization (Basic)"
+    txtbasicvirtualizationdesc="(Setup nested virtualization without CPU pinning)"
+    txtvirtualizationprompt="Before beginning with the setup, please write down who is the manufacturer of your CPU [intel/amd]:"
+
+    txtvirtualization="Virtualization (Full)"
+    txtvirtualizationdesc="(Setup nested virtualization and CPU pinning)"
+    txtvirtualizationprompt_warning="WARNING!!!\n\nCPU pinning only works with hexacore CPUs without HyperThreading/SMT currently. Abort now if your system is superior or inferior.\n\nDo you want to proceed? [yes/no]:"
+    txtvirtualizationprompt="Before beginning with the setup, please write down who is the manufacturer of your CPU [intel/amd]:"
 
     txtfixes="Fixes"
     txtfixesdesc="(Common fixes for Debian)"
@@ -915,8 +1010,7 @@ loadstrings_es(){
 
     txtaccept="Aceptar"
     txtrefuse="Rechazar"
-
-    txtyoursys="Tu sistema: "
+    txtaboirt="Abortar"
 
     txtnotsupportedyet="Versión no soportada"
     txtnotsupportedyetdesc="Lo siento, la versión: ${distroInfo} aún no está soportada."
@@ -937,9 +1031,8 @@ loadstrings_es(){
     txtlanguage="Cambiar idioma"
     txtlanguagedesc="[Idioma por defecto: (Inglés (EE.UU.)]"
 
-    txtbase="Base"
+    txtbasesetup="Configuración base"
     txtbasedesc="(Instalar entorno de escritorio, crear archivo de intercambio)"
-    txtbasesetup="Configuración base"   
     txtsetupbaseselectdesktop="Elegir entorno de escritorio"
     txtsetupbaseinstalldesktop="Instalar entorno de escritorio"
     txtsetupbaseinstalldesktopdesc="(Instalar GNOME, KDE o Xfce)"
@@ -952,8 +1045,9 @@ loadstrings_es(){
 
     txtextras="Extras"
     txtextrasdesc="(Herramientas, controladores y aplicaciones para Debian)"
-    txtextrassetup="Configuración de extras extras"
+    txtextrassetup="Configuración de extras"
     txtextrassetup_sysreadiness="Ejecutar preparación del sistema"
+    txtextrassetup_bsystools="Instalar herramientas básicas del sistema"
     txtextrassetup_bsystools_gnome="Instalar herramientas básicas del sistema (GNOME)"
     txtextrassetup_bsystools_kde="Instalar herramientas básicas del sistema (KDE)"
     txtextrassetup_bsystools_xfce="Instalar herramientas básicas del sistema (Xfce)"
@@ -962,15 +1056,20 @@ loadstrings_es(){
     txtextrassetup_officesuite="2.- Instalar suite ofimática"
     txtextrassetup_gaming="3.- Instalar software para jugar"
     txtextrassetup_multimedia="4.- Instalar software multimedia"
-    txtextrassetup_amd_intel="5.- Install Mesa and VULKAN Drivers"
-    txtextrassetup_amd_intel_dialog="Estás apunto de instalar los controladores MESA y Vulkan para AMD/Intel. ¿Estás seguro? (reinicio requerido) [Y/N]: "
+    txtextrassetup_amd_intel="5.- Instalar los controladores de Mesa y Vulkan"
+    txtextrassetup_amd_intel_dialog="Estás a punto de instalar los controladores MESA y Vulkan para AMD/Intel. ¿Estás seguro? (reinicio requerido) [Y/N]: "
     txtextrassetup_material_debian="6.- Instalar Material Debian para GNOME"
     txtextrassetup_material_debian_dialog="Estás apunto de instalar Material Debian para GNOME. ¿Estás seguro? (reinicio requerido) [Y/N]: "
     
-    txtvirtualization="Virtualización"
-    txtvirtualizationdesc="(Configurar afinidad de CPU, virtualización anidada, etc.)"
-    txtvirtualizationprompt="Antes de empezar a configurar la virtualización, necesito saber de qué marca es tu CPU, Intel o AMD\n\nPor favor, escríbelo abajo [intel/amd]: "
+    txtbasicvirtualization="Virtualización (Básica)"
+    txtbasicvirtualizationdesc="(Configurar virtualización anidada sin afinidad de CPU)"
+    txtvirtualizationprompt="Antes de empezar con la configuración, por favor, escribe abajo quién es el fabricante de tu CPU [intel/amd]:"
 
+    txtvirtualization="Virtualización (Completa)"
+    txtvirtualizationdesc="(Configurar virtualización anidada con afinidad de CPU)"
+    txtvirtualizationprompt_warning="¡¡¡ AVISO !!! La afinidad de la CPU solo funciona con CPUs de 6 núcleos sin HyperThreading/SMT. Aborta ahora si tu sistema es superior o inferior.\n\n¿Quieres proceder? [yes/no]:"
+    txtvirtualizationprompt="Antes de empezar con la configuración, por favor, escribe abajo quién es el fabricante de tu CPU [intel/amd]:"
+    
     txtfixes="Arreglos"
     txtfixesdesc="(Arreglos comunes para Debian)"
     txtfixes_fixwiredunmanaged="Arreglar Ethernet sin manejar"
@@ -983,7 +1082,7 @@ loadstrings_es(){
 
     txtreboottitle="Reiniciar sistema"
     txtreboot="Reiniciar"
-    txtrebootdesc="(Apaga el ordenador y entonces inícialo de nuevo)"
+    txtrebootdesc="(Apaga el ordenador y lo inicia de nuevo)"
 
     txtmadeby="(Por gfelipe099)"
     txtmadeby_wip="(WIP)"
@@ -992,6 +1091,5 @@ loadstrings_es(){
 
 }
     loadstrings_us
-    systemReadiness
     chooseLanguage
 # ------------------------------------------------- script end ------------------------------------------------- #
