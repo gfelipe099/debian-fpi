@@ -3,6 +3,7 @@ A modified version of archfi for Debian, which I called Debian Fast Post-Install
 
 **All of the packages are delivered within Debian main repository only, 'contrib' and 'non-free' repositories were removed from this open-source edition.**
 
+> Looking for the non-free version? Click <a href="https://github.com/gfelipe099/debian-fpi/tree/nonfree">here</a></p>
 
 ## Statement before using Debian FPI
 There are a few requirements which you have to do in order to use this script correctly or to even make it work correctly (this may change in the future):
