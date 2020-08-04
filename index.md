@@ -1,37 +1,26 @@
-## Welcome to GitHub Pages
+# debian-fpi
 
-You can use the [editor on GitHub](https://github.com/gfelipe099/debian-fpi/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+A modified version of archfi for Debian, which I called Debian Fast Post-Installer, or Debian FPI, where you can install a desktop enviroment (currently GNOME and KDE Plasma); tools, drivers, applications, fix common issues and/or setup virtualization capabilities.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+**All of the packages are delivered within Debian main repository only, 'contrib' and 'non-free' repositories were removed from this open-source edition.**
 
-### Markdown
+> Looking for the non-free version? Click <a href="https://github.com/gfelipe099/debian-fpi/tree/nonfree">here</a></p>
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+## Statement before using Debian FPI
+There are a few requirements which you have to do in order to use this script correctly or to even make it work correctly (this may change in the future):
 
-```markdown
-Syntax highlighted code block
+You explicitly need to:
 
-# Header 1
-## Header 2
-### Header 3
+> **Use the EXT4 filesystem in order to use a swap file.**
+> **Not include a swap partition in your favorite or preferred partition scheme.**
+> **Disallow, not use or disable the root account upon the installation or the script will fail in some areas.**
+> **Disallow the use of non-free and contrib software.**
+> **Deselect everything from the tasksel part: Debian desktop enviroment, printer software and basic system utilities. The script will handle that after.**
 
-- Bulleted
-- List
+## How to use
+Copy and paste this command which will get you up and running:
 
-1. Numbered
-2. List
+> sudo apt update -y && sudo apt install -y wget && wget -q https://raw.githubusercontent.com/gfelipe099/debian-fpi/master/debian-fpi.sh && chmod a+x debian-fpi.sh && sudo ./debian-fpi.sh
 
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/gfelipe099/debian-fpi/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+## Why to execute the script as sudo?
+Sudo permissions are required, because it modifies system settings.
