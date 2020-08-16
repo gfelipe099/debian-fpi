@@ -20,7 +20,7 @@ You explicitly need to:
 > **Deselect everything from the tasksel part: Debian desktop enviroment, printer software and basic system utilities. The script will handle that after.**
 
 ## How to use
-Copy and paste this command which will get you up and running:
+Type this command into the terminal. It is large, but it will get you up and running:
 > sudo apt update -y && sudo apt install -y wget && wget -q https://raw.githubusercontent.com/gfelipe099/debian-fpi/master/debian-fpi.sh && chmod a+x debian-fpi.sh && sudo ./debian-fpi.sh
 
 ## Why to execute the script as sudo?
