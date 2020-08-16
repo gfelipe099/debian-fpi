@@ -4,9 +4,9 @@
 # Created by Liam Powell (gfelipe099)
 # A fork from MatMoul's https://github.com/MatMoul/archfi
 # debian-fpi.sh file
-# For Debian GNU/Linux 10.2/10.3/10.4 (buster) desktop amd64
+# For Debian GNU/Linux 10.2/10.3/10.4/10.5 (buster) desktop amd64
 #
-appTitle="Debian Fast Post-Installer Setup v202000711.1-stable (Release Build)"
+appTitle="Debian Fast Post-Installer Setup v202000816.0-stable (Release Build)"
 
 #
 # text formatting codes
@@ -42,7 +42,7 @@ distroSystem="$(lsb_release -ds)"
 
 root(){
         if [[ "$distroSystem" = "Debian GNU/Linux 10 (buster)" ]]; then
-            if [[ "$distroInfo" = "Debian 10.2 4.19.0-6-amd64" || "Debian 10.3 4.19.0-8-amd64" || "Debian 10.4 4.19.0-9-amd64" ]]; then
+            if [[ "$distroInfo" = "Debian 10.2 4.19.0-6-amd64" || "Debian 10.3 4.19.0-8-amd64" || "Debian 10.4 4.19.0-9-amd64" || "Debian 10.5 4.19.0-10-amd64" ]]; then
                 mainMenu
             else
                 whiptail --title "${txtnotsupportedyet}" --fb --ok-button "${txtok}" --msgbox "${txtnotsupportedyetdesc}" 10 65
@@ -316,6 +316,8 @@ extrasSetup(){
         elif [ "${sel}" = "${txtextrassetup_bsystools}" ]; then
             pkgs=""
             options=()
+            options+=("selinux-basics" "Basic SELinux stuff for easier installation" on)
+            options+=("selinux-policy-default" "SELinux default policies" on)
             options+=("htop" "Command-line system monitor" off)
             options+=("terminator" "Terminator terminal" off)
             options+=("neofetch" "Command-line system information tool" off)
@@ -347,6 +349,26 @@ extrasSetup(){
                 echo -e "XXX\n50\nInstalling and configuring GNOME Basic System Tools... \nXXX"
                 apt-get install -yy ${pkgs} &>/dev/null
                 sleep 50
+                
+                if [[ ${pkgs} = *"selinux-basics"* ]]; then
+                    if [[ ${pkgs} = *"selinux-policy-default"* ]]; then
+                        cp /etc/selinux/config /etc/selinux/config.backup
+                        printf '# This file controls the state of SELinux on the system.
+# SELINUX= can take one of these three values:
+# enforcing - SELinux security policy is enforced.
+# permissive - SELinux prints warnings instead of enforcing.
+# disabled - No SELinux policy is loaded.
+SELINUX=enforcing
+# SELINUXTYPE= can take one of these two values:
+# default - equivalent to the old strict and targeted policies
+# mls     - Multi-Level Security (for military and educational use)
+# src     - Custom policy built from source
+SELINUXTYPE=mls
+
+# SETLOCALDEFS= Check local definition changes
+SETLOCALDEFS=0' > /etc/selinux/config
+                    fi
+                fi
 
                 echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
                 sleep 5
