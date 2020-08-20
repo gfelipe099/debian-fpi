@@ -316,6 +316,7 @@ extrasSetup(){
         elif [ "${sel}" = "${txtextrassetup_bsystools}" ]; then
             pkgs=""
             options=()
+            options+=("fail2ban" "Network monitoring tool which bans hosts that cause multiple authentication errors" on)
             options+=("selinux-basics" "Basic SELinux stuff for easier installation" on)
             options+=("selinux-policy-default" "SELinux default policies" on)
             options+=("htop" "Command-line system monitor" off)
