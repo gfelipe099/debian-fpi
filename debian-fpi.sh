@@ -6,7 +6,7 @@
 # debian-fpi.sh file
 # For Debian GNU/Linux 10.2/10.3/10.4/10.5 (buster) desktop amd64
 #
-appTitle="Debian Fast Post-Installer Setup v202000816.0-stable (Release Build)"
+appTitle="Debian Fast Post-Installer Setup v202000820.0-stable (Release Build)"
 
 #
 # text formatting codes
@@ -42,7 +42,7 @@ distroSystem="$(lsb_release -ds)"
 
 root(){
         if [[ "$distroSystem" = "Debian GNU/Linux 10 (buster)" ]]; then
-            if [[ "$distroInfo" = "Debian 10.2 4.19.0-6-amd64" || "Debian 10.3 4.19.0-8-amd64" || "Debian 10.4 4.19.0-9-amd64" || "Debian 10.5 4.19.0-10-amd64" ]]; then
+            if [[ "$distroInfo" = "Debian 10.2 4.19.0-6-amd64" || "Debian 10.3 4.19.0-8-amd64" || "Debian 10.4 4.19.0-9-amd64" || "Debian 10.5 4.19.0-9-amd64" || "Debian 10.5 4.19.0-10-amd64" ]]; then
                 mainMenu
             else
                 whiptail --title "${txtnotsupportedyet}" --fb --ok-button "${txtok}" --msgbox "${txtnotsupportedyetdesc}" 10 65
