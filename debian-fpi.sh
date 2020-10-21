@@ -1,1118 +1,787 @@
-#!/bin/bash
+#!/bin/sh
 
 #
-# Created by Liam Powell (gfelipe099)
-# A fork from MatMoul's https://github.com/MatMoul/archfi
-# debian-fpi.sh file
-# For Debian GNU/Linux 10.2/10.3/10.4/10.5 (buster) desktop amd64
-#
-appTitle="Debian Fast Post-Installer Setup v202000820.0-stable (Release Build)"
+# Debian Fast-Post Installer script
+# Created and developed by Liam Powell (gfelipe099)
+# debian-fpi file
+# For Debian GNU/Linux 10 (buster) amd64
+# 
 
-#
-# text formatting codes
-# source https://github.com/nbros652/LUKS-guided-manual-partitioning/blob/master/LGMP.sh
-#
-normalText='\e[0m'
-boldText='\e[1m'
-yellow='\e[93m'
-green='\e[92m'
-red='\e[91m'
-
-#
-# check if running as root
-#
-if [ "$(whoami)" != "root" ]; then
-    echo -e "${boldText}${red}This script must be executed as root."${normalText}
-    exit 0
+# set config dir
+configDir="/root/.config/debian-fpi/"
+# set script parameters
+language="${1}"
+repository="${2}"
+if [ -z ${language} ]; then
+    echo "Missing required argument: [language] "
+    echo "You must specify which language and repository to use." && echo "" && echo ""
+    echo "Usage: debian-fpi [language] [repository]" && echo ""
+    echo "Options:"
+    echo "  Language:"
+    echo "    en"
+    echo "    es"
+    echo "    fr" && echo ""
+    echo "  Repository:"
+    echo "    free"
+    echo "    nonfree" && echo ""
+    echo "Example: sh debian-fpi.sh en free" && echo ""
+    exit 1
+elif [ -z ${repository} ]; then
+    echo "Missing required argument: [repository] "
+    echo "You must specify which language and repository to use."
+    echo "" && echo ""
+    echo "Usage: debian-fpi [language] [repository]"
+    echo ""
+    echo "Options:"
+    echo "  Language:"
+    echo "    en"
+    echo "    es"
+    echo "    fr"
+    echo ""
+    echo "  Repository:"
+    echo "    free"
+    echo "    nonfree"
+    echo ""
+    echo "Example: sh debian-fpi.sh en free"
+    echo ""
+    exit 2
+fi
+# set language variables
+if [ ${language} = "en" ]; then
+    mustExecAsRoot="This script must be executed as root"
+    PkgManagerNotFound="APT Package Manager was not found in this system, execution aborted."
+    NotUsingDebian="You must be using Debian GNU/Linux 10 (buster) to execute this script."
+    welcomeToDebianFpi="Welcome to the Debian Fast-Post Installer tool or Debian-FPI!"
+    createdBy="Created by Liam Powell (gfelipe099)"
+    kernelVersion="Kernel version in use:"
+    errorConfigFileNotFound="ERROR: Configuration file "${configDir}"main.conf not found. Creating a new one..."
+    configFileFound="Your configuration file was found and loaded successfully!"
+	pkgsConfigFileFound="Your packages configuration file was found and loaded successfully, will be used instead of the default packages."
+	pkgsNotConfigFileFound="WARNING: Packages configuration file "${configDir}"pkgs.conf not found. Default packages will be used instead."
+    pressAnyKeyToBeginSetup="--> Press ENTER to start..."
+    desktopEnv="--> Desktop Enviroment"
+    desktopEnvPrompt="Which desktop enviroment do you want to use? (Default: gnome): "
+    unknownDesktopEnv="Sorry the desktop enviroment you chose is not available or it is not known yet by the script, please change your configuration file parameters and try again."
+    installingDesktopEnv="Installing ${desktopEnviroment} minimal desktop enviroment..."
+    installingBSysTools="Installing basic system tools..."
+	installingBTools="Installing basic tools..."
+    installingWebBrowser="Installing web browser..."
+    installingOfficeSuite="Installing office suite..."
+    installingGamingSoftware="Installing gaming software..."
+    installingMultimediaSoftware="Installing multimedia software..."
+    installingDeveloperSoftware="Installing developer software..."
+    installingLatestNvidiaDrivers="Installing NVIDIA drivers..."
+    installingOpenSourceDrivers="Installing open source drivers..."
+    webBrowserSoftwareWarning="The following packages and all their dependencies are going to be installed: ${wbPkgs}"
+    officeSuiteSoftwareWarning="The following packages and all their dependencies are going to be installed: ${osPkgs}"
+    gamingSoftwareWarning="The following packages and all their dependencies are going to be installed: ${gsPkgs}"
+    multimediaSoftwareWarning="The following packages and all their dependencies are going to be installed: ${msPkgs}"
+    developerSoftwareWarning="The following packages and all their dependencies are going to be installed: ${dsPkgs}"
+    gamingSoftwareWarning="The following packages and all their dependencies are going to be installed: ${gsPkgs}"
+    nvidiaLatestDriversWarning="The following packages and all their dependencies are going to be installed: ${lndPkgs}"
+    openSourceDriversWarning="The following packages and all their dependencies are going to be installed: ${osdPkgs}"
+    warningPrompt="Do you accept this? (Default: no) [Y/N]: "
+    warningPromptDisagrement="Operation cancelled, because you didn't agree with the warning."
+    configuringBSysTools="Configuring basic system tools..."
+    applicationsSettings="--> Applications Settings"
+    applicationsSettings_bsystools="Do you want to install basic system tools? (Default: yes): "
+    applicationsSettings_btools="Do you want to install basic tools? (Default: yes): "
+    applicationsSettings_webbrowser="Do you want to install a web browser? (Default: yes): "
+    applicationsSettings_officesuite="Do you want to install an office suite? (Default: yes): "
+    applicationsSettings_gaming="Do you want to instasll gaming software? (Default: yes): "
+    applicationsSettings_multimedia="Do you want to install multimedia software? (Default: yes): "
+    applicationsSettings_developer="Do you want to install developer software? (Default: no): "
+    applicationsSettings_nvidia_backports="If you use an NVIDIA graphics card, do you want to install the latest drivers from backports? (Default: no): "
+    applicationsSettings_opensource_drivers="If you use an AMD/Intel graphics card, do you want to install the open source drivers? (Default: yes): "
+    systemSettings="--> System Settings"
+    systemSettings_systemReadiness="For non-free software, you need extra repositories, do you want to run debian-fpi's System Readiness? (Default: no): "
+    systemSettings_systemReadiness_checkingForUpdates="Checking for updates and installing them if any..."
+    systemSettings_systemReadiness_generatingAptSourcesList="Generating clean APT sources list..."
+    systemSettings_createSwapFile="Do you want to create a swap file? (Default: no): "
+    systemSettings_createSwapFile_fileSize="How much space do you want to allocate for the swap file? (Default: 4G)"
+    systemSettings_applyDebianFixes="Do you want to apply debian-fpi's fixes to your system? (Default: yes): "
+    systemSettings_applyDebianFixes_pleaseWait="Applying fixes to your system..."
+    notInstallingDesktopEnviroment="Will not install a desktop enviroment per user request"
+    notInstallingBasicSystemTools="Will not install basic system tools per user request"
+    notInstallingBasicTools="Will not install basic tools per user request"
+    notInstallingWebBrowser="Will not install a web browser per user request"
+    notInstallingOfficeSuite="Will not install an office suite per user request"
+    notInstallingGamingSoftware="Will not install gaming software per user request"
+    notInstallingMultimediaSoftware="Will not install multimedia software per user request"
+    notInstallingDeveloperSoftware="Will not install developer software per user request"
+    notInstallingLatestNvidiaDrivers="Will not install NVIDIA drivers per user request"
+    notInstallingOpenSourceDrivers="Will not install open source drivers per user request"
+    notRunningSystemReadiness="Will not run System Readiness per user request"
+    notCreatingSwapFile="Will not create a swap file per user request"
+    notApplyingDebianFixes="Will not apply fixes per user request"
+    notSettingUpVirtualization="Not setting up virtualization per user request"
+elif [ ${language} = "es" ]; then
+    mustExecAsRoot="Este script debe ser ejecutado como root"
+    PkgManagerNotFound="El administrador de paquetes APT no fue encontrado en este sistema, ejecución abortada."
+    NotUsingDebian="Debes estar usando Debian GNU/Linux 10 (buster) para ejecutar este script."
+    welcomeToDebianFpi="¡Bienvenido a la herramienta rápida post-instaladora de Debian o Debian-FPI!"
+    createdBy="Creado por Liam Powell (gfelipe099)"
+    kernelVersion="Versión del núcleo en uso:"
+    errorConfigFileNotFound="ERROR: El archivo de configuración "${configDir}"main.conf no se ha encontrado. Creando uno nuevo..."
+    configFileFound="¡Tu archivo de configuración fue encontrado y cargado correctamente!"
+	pkgsConfigFileFound="¡Tu archivo de configuración de los paquetes fue encontrado y cargado correctamente!"
+	pkgsNotConfigFileFound="AVISO: El archivo de configuración de los paquetes "${configDir}"pkgs.conf no se ha encontrado. Se usarán los paquetes por defecto."
+    pressAnyKeyToBeginSetup="--> Presiona ENTER para empezar..."
+    desktopEnv="--> Entorno de escritorio"
+    desktopEnvPrompt="¿Qué entorno de escritorio quieres usar? (Por defecto: gnome): "
+    unknownDesktopEnv="Lo siento, el entorno de escritorio que has elegido no está disponible o no es conocido aún por el script, por favor, cambia los parámetros de tu archivo de configuración e inténtalo de nuevo."
+    installingDesktopEnv="Instalando el entorno de escritorio mínimo de ${desktopEnviroment}..."
+    installingBSysTools="Instalando herramientas básicas del sistema..."
+	installingBTools="Instalando herramientas básicas..."
+    installingWebBrowser="Instalando navegador web..."
+    installingOfficeSuite="Instalando suite ofimática..."
+    installingGamingSoftware="Instalando programas gaming..."
+    installingMultimediaSoftware="Instalando programas multimedia..."
+    installingDeveloperSoftware="Instalando programas para desarrolladores..."
+    installingLatestNvidiaDrivers="Instalando controladores de NVIDIA..."
+    installingOpenSourceDrivers="Instalando controladores de código abierto..."
+    webBrowserSoftwareWarning="Los siguientes paquetes y todas sus dependencias van a ser instaladas: ${wbPkgs}"
+    officeSuiteSoftwareWarning="Los siguientes paquetes y todas sus dependencias van a ser instaladas: ${osPkgs}"
+    gamingSoftwareWarning="Los siguientes paquetes y todas sus dependencias van a ser instaladas: ${gsPkgs}"
+    multimediaSoftwareWarning="Los siguientes paquetes y todas sus dependencias van a ser instaladas: ${msPkgs}"
+    developerSoftwareWarning="Los siguientes paquetes y todas sus dependencias van a ser instaladas: ${dsPkgs}"
+    gamingSoftwareWarning="Los siguientes paquetes y todas sus dependencias van a ser instaladas: ${gsPkgs}"
+    nvidiaLatestDriversWarning="Los siguientes paquetes y todas sus dependencias van a ser instaladas: ${lndPkgs}"
+    openSourceDriversWarning="Los siguientes paquetes y todas sus dependencias van a ser instaladas: ${osdPkgs}"
+    warningPrompt="¿Aceptas esto? (Pordefecto: no) [Y/N]: "
+    warningPromptDisagrement="Operación cancelada, porque no estabas deacuerdo con el aviso."
+    configuringBSysTools="Configurando las herramientas básicas del sistema..."
+    applicationsSettings="--> Configuración de aplicaciones"
+    applicationsSettings_bsystools="¿Quieres instalar herramientas básicas del sistema? (Por defecto: si): "
+    applicationsSettings_btools="¿Quieres instalar herramientas básicas? (Por defecto: si): "
+    applicationsSettings_webbrowser="¿Quieres instalar un navegador web? (Por defecto: si): "
+    applicationsSettings_officesuite="¿Quieres instalar una suite de ofimática? (Por defecto: si): "
+    applicationsSettings_gaming="¿Quieres instalar programas para juegos? (Por defecto: si): "
+    applicationsSettings_multimedia="¿Quieres instalar programas multimedia? (Por defecto: si): "
+    applicationsSettings_developer="¿Quieres instalar programas para desarrolladores? (Por defecto: no): "
+    applicationsSettings_nvidia_backports="Si usas una tarjeta gráfica NVIDIA, ¿quieres instalar los últimos controladores desde retroimportaciones (backports)? (Por defecto: no): "
+    applicationsSettings_opensource_drivers="Si usas una tarjeta gráfica AMD/Intel, ¿quieres instalar los controladores de código abierto? (Por defecto: si): "
+    systemSettings="--> Configuración del sistema"
+    systemSettings_systemReadiness="Para programas privativos, necesitas repositorios extra, quieres ejecutar la preparación del sistema de debian-fpi? (Por defecto: no): "
+    systemSettings_systemReadiness_checkingForUpdates="Comprobando actualizaciones e instalándolas si las hay..."
+    systemSettings_systemReadiness_generatingAptSourcesList="Generando lista de repositorios de APT limpia..."
+    systemSettings_createSwapFile="¿Quieres crear un archivo de intercambio? (Por defecto: no): "
+    systemSettings_applyDebianFixes="¿Quieres aplicar los arreglos de debian-fpi a tu sistema? (Default: yes): "
+    systemSettings_applyDebianFixes_pleaseWait="Aplicando arreglos a tu sistema..."
+    notInstallingDesktopEnviroment="No se instalará un entorno de escritorio por petición del usuario"
+    notInstallingBasicSystemTools="No se instalarán las herramientas básicas del sistema por petición del usuario"
+    notInstallingBasicTools="No se instalarán las herramientas básicas por petición del usuario"
+    notInstallingWebBrowser="No se instalará un navegador web por petición del usuario"
+    notInstallingOfficeSuite="No se instalará una suite ofimática por petición del usuario"
+    notInstallingGamingSoftware="No se instalarán programas gaming por petición del usuario"
+    notInstallingMultimediaSoftware="No se instalarán programas multimedia por petición del usuario"
+    notInstallingDeveloperSoftware="No se instalarán programas para desarrolladores por petición del usuario"
+    notInstallingLatestNvidiaDrivers="No se instalarán los controladores de NVIDIA por petición del usuario"
+    notInstallingOpenSourceDrivers="No se instalarán los controladores de código abierto por petición del usuario"
+    notRunningSystemReadiness="No se ejecutará la preparación del sistema por petición del usuario"
+    notCreatingSwapFile="No se creará un archivo de intercambio por petición del usuario"
+    notApplyingDebianFixes="No se aplicarán los arreglos de Debian por petición del usuario"
+    notSettingUpVirtualization="No se configurará la virtualización por petición del usuario"
 fi
 
-#
-# install this package to check which OS is running
-#
-apt install -yy lsb-release &>/dev/null
-
-#
-# check if the OS is Debian
-# credits to https://unix.stackexchange.com/users/33967/joeytwiddle, https://danielgibbs.co.uk
-# source: https://unix.stackexchange.com/questions/6345/how-can-i-get-distribution-name-and-version-number-in-a-simple-shell-script, https://danielgibbs.co.uk/2013/04/bash-how-to-detect-os/
-#
-
-distroInfo="Debian $(cat /etc/debian_version) $(uname -r)"
-distroSystem="$(lsb_release -ds)"
-
-root(){
-        if [[ "$distroSystem" = "Debian GNU/Linux 10 (buster)" ]]; then
-            if [[ "$distroInfo" = "Debian 10.2 4.19.0-6-amd64" || "Debian 10.3 4.19.0-8-amd64" || "Debian 10.4 4.19.0-9-amd64" || "Debian 10.5 4.19.0-9-amd64" || "Debian 10.5 4.19.0-10-amd64" ]]; then
-                mainMenu
-            else
-                whiptail --title "${txtnotsupportedyet}" --fb --ok-button "${txtok}" --msgbox "${txtnotsupportedyetdesc}" 10 65
-                exit 0
-            fi
-        else
-            whiptail --title "${txtunsupportedsystem}" --fb --ok-button "${txtok}" --msgbox "${txtunsupportedsystemdesc}" 13 90
-            exit 1
-        fi
-}
-
-chooseLanguage(){
-    #
-    # credits to: https://stackoverflow.com/users/1343979/bass
-    # source: https://stackoverflow.com/questions/46619539/changing-colours-in-whiptail
-    #
-    export NEWT_COLORS='root=,black'
-    language=$(whiptail --inputbox "${chooselanguage}" 12 85 en --fb --ok-button "${txtok}" --nocancel --title "Choose Language - Elegir idioma" 3>&1 1>&2 2>&3)
-    if [ "$?" = "0" ]; then
-        clear
-        if [ ${language} = "en" ]; then
-            loadstrings_us
-            root
-        elif [ ${language} = "es" ]; then
-            loadstrings_es
-            root
-        fi
-    fi
-}
-
- changeLanguage(){
-    sel=$(whiptail --backtitle "${appTitle}" --title "${txtlanguage}" --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
-        "${lang_us}" "${langdesc}" \
-        "${lang_es}" "${langdesc}" \
-        3>&1 1>&2 2>&3)
-    if [ "$?" = "0" ]; then
-        clear
-        if [ "${sel}" = "${lang_us}" ]; then
-            loadstrings_us
-        elif [ "${sel}" = "${lang_es}" ]; then
-            loadstrings_es
-        fi
-    fi
-}
-
-# ------------------------------------------------- script beginning ------------------------------------------------- #
-
-mainMenu(){
-    #
-    # credits to: https://stackoverflow.com/users/1343979/bass
-    # source: https://stackoverflow.com/questions/46619539/changing-colours-in-whiptail
-    #
-    export NEWT_COLORS='root=,blue'
-    sel=$(whiptail --backtitle "${appTitle}" --title "${txtmainmenu}" --fb --ok-button "${txtok}" --menu "${txtyoursys}${distroInfo}" --cancel-button "${txtexit}" 0 0 0 \
-        "${txtlanguage}" "${txtlanguagedesc}" \
-        "" "" \
-        "${txtbasesetup}" "${txtbasedesc}" \
-        "${txtextrassetup}" "${txtextrasdesc}" \
-        "" "" \
-        "${txtbasicvirtualization}" "${txtbasicvirtualizationdesc}" \
-        "${txtvirtualization}" "${txtvirtualizationdesc}" \
-        "" "" \
-        "${txtfixes}" "${txtfixesdesc}" \
-        "${txtreboot}" "${txtrebootdesc}" 3>&1 1>&2 2>&3)
-    if [ "$?" = "0" ]; then
-        case ${sel} in
-            "${txtlanguage}")
-                changeLanguage
-                nextitem="${txtbasesetup}"
-            ;;
-            "${txtbasesetup}")
-                baseSetup
-                nextitem="${txtextrassetup}"
-            ;;
-            "${txtextrassetup}")
-                extrasSetup
-                nextitem="${txtvirtualization}"
-            ;;
-            "${txtvirtualization}")
-                virtualizationSetup
-                nextitem="${txtfixes}"
-            ;;
-            "${txtbasicvirtualization}")
-                basicVirtualizationSetup
-                nextitem="${txtfixes}"
-            ;;
-            "${txtfixes}")
-                fixesSetup
-                nextitem="${txtreboot}"
-            ;;
-            "${txtreboot}")
-                reboot
-                nextitem="${txtreboot}"
-            ;;
-        esac
-        mainMenu "${nextitem}"
+# check if running as root
+if [ "$(whoami)" != "root" ]; then
+    echo "${mustExecAsRoot}"
+    exit 0
     else
-        clear
+        # create configuration directory if it does not exist
+        if [ ! -d ${configDir} ]; then
+            mkdir -p ${configDir}
+        fi
+fi
+# verify Debian GNU/Linux is running
+if [ ! -f /usr/bin/apt ]; then
+    echo "${PkgManagerNotFound}"
+    exit
+    else
+        apt-get install -yy lsb-release >/dev/null
+        os=$(lsb_release -ds | sed 's/"//g')
+fi
+if [ "${os}" != "Debian GNU/Linux 10 (buster)" ]; then
+    echo "${NotUsingDebian}"
+    exit 2
+fi
+
+welcome() {
+    clear
+    apt-get install -yy figlet >/dev/null
+    figlet -c "Debian"
+    figlet -c "FPI"
+    apt-get purge -yy figlet --autoremove >/dev/null
+    echo "${welcomeToDebianFpi}"
+    echo "${createdBy}"
+    echo "${kernelVersion} $(uname -r)"
+}
+
+root() {
+    if [ ! -f ${configDir}pkgs.conf ] >/dev/null; then
+        echo "" && echo "${pkgsNotConfigFileFound}"
+    fi
+    if [ ! -f ${configDir}main.conf ] >/dev/null; then
+        echo "" && echo "${errorConfigFileNotFound}"
+
+        echo "" && echo "" && echo "${desktopEnv}"
+        read -p "${desktopEnvPrompt}" desktopEnviroment
+        if [ -z ${desktopEnviroment} ]; then
+            desktopEnviroment=gnome
+        fi
+        echo "" && echo "" && echo "-${applicationsSettings}"
+        read -p "${applicationsSettings_bsystools}" installBasicSystemTools
+        if [ -z ${installBasicSystemTools} ]; then
+            installBasicSystemTools=yes
+        fi
+        read -p "${applicationsSettings_btools}" installBasicTools
+        if [ -z ${installBasicTools} ]; then
+            installBasicTools=yes
+        fi
+        read -p "${applicationsSettings_webbrowser}" installWebBrowser
+        if [ -z ${installWebBrowser} ]; then
+            installWebBrowser=yes
+        fi
+        read -p "${applicationsSettings_officesuite}" installOfficeSuite
+        if [ -z ${installOfficeSuite} ]; then
+            installOfficeSuite=no
+        fi
+        read -p "${applicationsSettings_gaming}" installGamingSoftware
+        if [ -z ${installGamingSoftware} ]; then
+            installGamingSoftware=no
+        fi
+        read -p "${applicationsSettings_multimedia}" installMultimediaSoftware
+        if [ -z ${installMultimediaSoftware} ]; then
+            installMultimediaSoftware=no
+        fi
+        read -p "${applicationsSettings_developer}" installDeveloperSoftware
+        if [ -z ${installDeveloperSoftware} ]; then
+            installDeveloperSoftware=no
+        fi
+        read -p "${applicationsSettings_nvidia_backports}" installLatestNvidiaDrivers
+        if [ -z ${installLatestNvidiaDrivers} ]; then
+            installLatestNvidiaDrivers=no
+        fi
+        read -p "${applicationsSettings_opensource_drivers}" installOpenSourceDrivers
+        if [ -z ${installOpenSourceDrivers} ]; then
+            installOpenSourceDrivers=yes
+        fi
+        echo "" && echo "" && echo "${systemSettings}"
+		if [ ${repository} = "nonfree" ]; then
+		    read -p "${systemSettings_systemReadiness}" runSystemReadiness
+		    if [ -z ${runSystemReadiness} ]; then
+		        runSystemReadiness=no
+		    fi
+		fi
+        read -p "${systemSettings_createSwapFile}" createSwapFile
+        if [ -z ${createSwapFile} ]; then
+            createSwapFile=no
+        fi
+        read -p "${systemSettings_applyDebianFixes}" applyDebianFixes
+        if [ -z ${applyDebianFixes} ]; then
+            applyDebianFixes=yes
+        fi
+        printf "# Desktop Enviroment\ndesktopEnviroment="${desktopEnviroment}"\n\n# Applications Settings\ninstallBasicSystemTools="${installBasicSystemTools}"\ninstallBasicTools="${installBasicTools}"\ninstallWebBrowser="${installWebBrowser}"\ninstallOfficeSuite="${installOfficeSuite}"\ninstallGamingSoftware="${installGamingSoftware}"\ninstallMultimediaSoftware="${installMultimediaSoftware}"\ninstallDeveloperSoftware="${installDeveloperSoftware}"\ninstallLatestNvidiaDrivers="${installLatestNvidiaDrivers}"\ninstallOpenSourceDrivers="${installOpenSourceDrivers}"\n\n# System Settings\nrunSystemReadiness="${runSystemReadiness}"\ncreateSwapFile="${createSwapFile}"\napplyDebianFixes="${applyDebianFixes}"\n" > ${configDir}main.conf
+        else
+            . ${configDir}main.conf
+            echo "" && echo "${configFileFound}" && echo "" && echo "" && echo ""
+	fi
+    if [ -f ${configDir}pkgs.conf ]; then
+        echo "" && echo "${pkgsConfigFileFound}" && echo "" && echo "${pressAnyKeyToBeginSetup}" && read "" && echo "" && echo ""
+        . ${configDir}pkgs.conf
     fi
 }
 
-reboot(){
-    if (whiptail --backtitle "${appTitle}" --title "${txtreboottitle}" --fb --yesno "${txtreboot}?" --defaultno 10 20); then
-        clear
-        sudo reboot
+setupDesktopEnviroment() {
+    echo "${installingDesktopEnv}"
+    if [ ${ desktopEnviroment } = "gnome" ]; then
+        apt-get install -yy gdm3* >/dev/null
+    elif [ ${desktopEnviroment} = "kde" ]; then
+        apt-get install -yy sddm* && apt-get purge -yy discover plasma-discover kinfocenter xterm --autoremove >/dev/null
+    elif [ ${desktopEnviroment} = "xfce" ]; then
+        apt install -yy xfwm4 xfdesktop4 xfce4-panel xfce4-panel xfce4-settings xfce4-power-manager xfce4-session xfconf xfce4-notifyd >/dev/null
+        else
+            echo "${unknownDesktopEnv}"
+            exit 1
     fi
 }
 
-systemReadiness(){
-    #
-    # credits to: https://stackoverflow.com/users/1343979/bass
-    # source: https://stackoverflow.com/questions/46619539/changing-colours-in-whiptail
-    #
-    export NEWT_COLORS='root=,black'
-    {
-        sleep 1
-        echo -e "XXX\49\nChecking for updates and installing them if any...\nXXX"
+setupBasicSystemTools() {
+	if [ ! -f ${configDir}pkgs.conf ]; then
+		if [ ${repository} = "nonfree" ]; then
+			bstPkgs="selinux-basics selinux-policy-default gufw clamtk gcc make firmware-linux-{nonfree,free} curl linux-headers-$(uname -r) gdebi fonts-noto-color-emoji"
+		elif [ ${repository} = "free" ]; then
+		    bstPkgs="selinux-basics selinux-policy-default gufw clamtk gcc make perl firmware-linux-free curl linux-headers-$(uname -r) gdebi fonts-noto-color-emoji"
+		fi
+		else
+			. ${configDir}pkgs.conf
+	fi
+    echo "${installingBSysTools}"
+    apt-get install -yy ${bstPkgs} >/dev/null
+    echo "${configuringBSysTools}"
+    cp /etc/selinux/config /etc/selinux/config.backup
+    sed -i "s/SELINUX=permissive/SELINUX=enforcing/g" /etc/selinux/config && sed -i "s/SELINUXTYPE=default/SELINUXTYPE=mls/g" /etc/selinux/config
+    ufw enable >/dev/null
+}
+
+setupBasicTools() {
+    if [ ${desktopEnviroment} = "gnome" ]; then
+        if [ ! -f ${configDir}pkgs.conf ]; then
+            btPkgs="nautilus gnome-terminal gedit clamtk-gnome"
+            else
+                . ${configDir}pkgs.conf
+        fi
+    elif [ ${desktopEnviroment} = "kde" ]; then
+        if [ ! -f ${configDir}pkgs.conf ]; then
+        btPkgs="plasma-nm dolphin konsole kate kwin-{x11,wayland}"
+            else
+                . ${configDir}pkgs.conf
+        fi
+    elif [ ${desktopEnviroment} = "xfce" ]; then
+        if [ ! -f ${configDir}pkgs.conf ]; then
+        btPkgs="thunar mousepad ristretto xfce4-{screenshooter,terminal,goodies,themes}"
+            else
+                . ${configDir}pkgs.conf
+        fi
+    fi
+    while true; do
+        read -p "${warningPrompt}" btInstallationWarningAccepted
+        if [ -z ${btInstallationWarningAccepted} ]; then
+            btInstallationWarningAccepted=no
+        elif ${btInstallationWarningAccepted} = "N" ]; then
+            btInstallationWarningAccepted=no
+        elif ${btInstallationWarningAccepted} = "n" ]; then
+            btInstallationWarningAccepted=no
+        elif ${btInstallationWarningAccepted} = "Y" ]; then
+            btInstallationWarningAccepted=yes
+        elif ${btInstallationWarningAccepted} = "y" ]; then
+            btInstallationWarningAccepted=yes
+        fi
+        break
+    done
+    if [ ${wbInstallationWarningAccepted} = "yes" ]; then
+        echo "${installingBTools}" && echo ""
+        apt-get update >/dev/null && apt-get install -yy ${btPkgs} >/dev/null
+        else
+            echo "${warningPromptDisagrement}" && echo ""
+    fi
+}
+
+setupWebBrowser() {
+	if [ ! -f ${configDir}pkgs.conf ]; then
+	    wbPkgs="firefox-esr"
+		else
+			. ${configDir}pkgs.conf
+	fi
+    while true; do
+        read -p "${warningPrompt}" wbInstallationWarningAccepted
+        if [ -z ${osInstallationWarningAccepted} ]; then
+            wbInstallationWarningAccepted=no
+        elif ${wbInstallationWarningAccepted} = "N" ]; then
+            wbInstallationWarningAccepted=no
+        elif ${wbInstallationWarningAccepted} = "n" ]; then
+            wbInstallationWarningAccepted=no
+        elif ${wbInstallationWarningAccepted} = "Y" ]; then
+            wbInstallationWarningAccepted=yes
+        elif ${wbInstallationWarningAccepted} = "y" ]; then
+            wbInstallationWarningAccepted=yes
+        fi
+        break
+    done
+    if [ ${wbInstallationWarningAccepted} = "yes" ]; then
+        echo "${installingWebBrowser}" && echo ""
+        if [ ${wbPkgs} = *"google-chrome-stable"* ]; then
+            wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
+            apt-get update >/dev/null && apt-get install -yy google-chrome-stable >/dev/null
+        elif [ ${wbPkgs} = *"vivaldi-stable"* ]; then
+            wget -qO- https://repo.vivaldi.com/archive/linux_signing_key.pub | apt-key add -
+            add-apt-repository 'deb https://repo.vivaldi.com/archive/deb/ stable main'
+        elif [ ${wbPkgs} = *"brave-browser-stable"* ]; then
+			apt-get purge --autoremove brave-{beta,nightly} >/dev/null
+            apt-get install -yy apt-transport-https curl >/dev/null
+            curl -s https://brave-browser-apt-release.s3.brave.com/brave-core.asc | apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add - >/dev/null
+            echo "deb [arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main" | tee /etc/apt/sources.list.d/brave-browser-release.list >/dev/null
+        elif [ ${wbPkgs} = *"brave-browser-beta"* ]; then
+			apt-get purge --autoremove brave-{stable,nightly} >/dev/null
+            apt-get install -yy apt-transport-https curl >/dev/null
+            curl -s https://brave-browser-apt-beta.s3.brave.com/brave-core.asc | apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-beta.gpg add - >/dev/null
+            echo "deb [arch=amd64] https://brave-browser-apt-beta.s3.brave.com/ stable main" | tee /etc/apt/sources.list.d/brave-browser-beta.list >/dev/null
+        elif [ ${wbPkgs} = *"brave-browser-nightly"* ]; then
+            apt-get purge --autoremove brave-{stable,beta} >/dev/null
+            apt-get install -yy apt-transport-https curl >/dev/null
+            curl -s https://brave-browser-apt-nightly.s3.brave.com/brave-core.asc | apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-nightly.gpg add - >/dev/null
+            echo "deb [arch=amd64] https://brave-browser-apt-nightly.s3.brave.com/ stable main" | tee /etc/apt/sources.list.d/brave-browser-nightly.list >/dev/null
+        fi
+        apt-get update >/dev/null && apt-get install -yy ${wbPkgs} >/dev/null
+        else
+            echo "${warningPromptDisagrement}" && echo ""
+    fi
+}
+
+setupOfficeSuite() {
+	if [ ! -f ${configDir}pkgs.conf ]; then
+	    osPkg="libreoffice"
+		else
+			. ${configDir}pkgs.conf
+	fi
+    echo "${officeSuiteSoftwareWarning}"
+    while true; do
+        read -p "${warningPrompt}" osInstallationWarningAccepted
+        if [ -z ${osInstallationWarningAccepted} ]; then
+            osInstallationWarningAccepted=no
+        elif ${osInstallationWarningAccepted} = "N" ]; then
+            osInstallationWarningAccepted=no
+        elif ${osInstallationWarningAccepted} = "n" ]; then
+            osInstallationWarningAccepted=no
+        elif ${osInstallationWarningAccepted} = "Y" ]; then
+            osInstallationWarningAccepted=yes
+        elif ${osInstallationWarningAccepted} = "y" ]; then
+            osInstallationWarningAccepted=yes
+        fi
+        break
+    done
+    if [ ${osInstallationWarningAccepted} = "yes" ]; then
+        echo "${installingOfficeSuite}" && echo ""
+        apt-get install -yy libreoffice >/dev/null
+        else
+            echo "${warningPromptDisagrement}" && echo ""
+    fi
+}
+
+setupGamingSoftware() {
+	if [ ! -f ${configDir}pkgs.conf ]; then
+	    gsPkgs="steam lutris pcsx2 winehq-staging libvulkan1 libvulkan1:i386 libgl1-mesa-dri:i386 mesa-vulkan-drivers:i386 mesa-vulkan-drivers:i386 libegl-mesa0 libgbm1 libgl1-mesa-dri {libglapi,libglu1}-mesa libglx-mesa0 libosmesa6 mesa-{utils,va-drivers,vdpau-drivers,vulkan-drivers} xserver-xorg-video-nouveau"
+		else
+			. ${configDir}pkgs.conf
+	fi
+    echo "${gamingSoftwareWarning}"
+    while true; do
+        read -p "${warningPrompt}" gsInstallationWarningAccepted
+        if [ -z ${gsInstallationWarningAccepted} ]; then
+            gsInstallationWarningAccepted=no
+        elif ${gsInstallationWarningAccepted} = "N" ]; then
+            gsInstallationWarningAccepted=no
+        elif ${gsInstallationWarningAccepted} = "n" ]; then
+            gsInstallationWarningAccepted=no
+        elif ${gsInstallationWarningAccepted} = "Y" ]; then
+            gsInstallationWarningAccepted=yes
+        elif ${gsInstallationWarningAccepted} = "y" ]; then
+            gsInstallationWarningAccepted=yes
+        fi
+        break
+    done
+    if [ ${gsInstallationWarningAccepted} = "yes" ]; then
+        echo "${installingGamingSoftware}" && echo ""
+        if [ ${gsPkgs} = *"lutris"* ]; then
+            echo "deb http://download.opensuse.org/repositories/home:/strycore/Debian_10/ ./" | tee /etc/apt/sources.list.d/lutris.list >/dev/null
+            wget -q https://download.opensuse.org/repositories/home:/strycore/Debian_10/Release.key -O- | apt-key add -
+            apt-get install -yy lutris >/dev/null
+        elif [ ${gsPkgs} = *"minecraft-launcher"* ]; then
+            wget -q https://launcher.mojang.com/download/Minecraft.deb
+            gdebi -nq Minecraft.deb
+        elif [ ${gsPkgs} = *"winehq-stable"* ]; then
+            dpkg --add-architecture i386
+            wget -q https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/Debian_10/amd64/libfaudio0_20.01-0~buster_amd64.deb && gdebi -nq libfaudio0_20.01-0~buster_amd64.deb
+            wget -q https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/Debian_10/i386/libfaudio0_20.01-0~buster_i386.deb && gdebi -nq libfaudio0_20.01-0~buster_i386.deb
+            wget -qnc https://dl.winehq.org/wine-builds/winehq.key | apt-key add winehq.key >/dev/null
+            echo "deb https://dl.winehq.org/wine-builds/debian/ buster main" | tee /etc/apt/sources.list.d/winehq.list >/dev/null
+        elif [ ${gsPkgs} = *"winehq-stable"* ]; then
+            dpkg --add-architecture i386
+            wget -qnc https://dl.winehq.org/wine-builds/winehq.key | apt-key add winehq.key >/dev/null
+
+            echo "deb https://dl.winehq.org/wine-builds/debian/ buster main" | tee /etc/apt/sources.list.d/winehq.list >/dev/null
+        elif [ ${gsPkgs} = *"winehq-staging"* ]; then
+            dpkg --add-architecture i386
+            wget -qnc https://dl.winehq.org/wine-builds/winehq.key | apt-key add winehq.key >/dev/null
+            echo "deb https://dl.winehq.org/wine-builds/debian/ buster main" | tee /etc/apt/sources.list.d/winehq.list >/dev/null
+        fi
+        apt-get update >/dev/null && apt-get install -yy --install-recommends ${wbPkgs} >/dev/null
+        else
+            echo "${warningPromptDisagrement}" && echo ""
+    fi
+}
+
+setupMultimediaSoftware() {
+	if [ ! -f ${configDir}pkgs.conf ]; then
+	    msPkgs="gimp spotify-client discord"
+		else
+			. ${configDir}pkgs.conf
+	fi
+    echo "${multimediaSoftwareWarning}"
+    while true; do
+    read -p "${warningPrompt}" msInstallationWarningAccepted
+        if [ -z ${msInstallationWarningAccepted} ]; then
+            msInstallationWarningAccepted=no
+        elif ${msInstallationWarningAccepted} = "N" ]; then
+            msInstallationWarningAccepted=no
+        elif ${msInstallationWarningAccepted} = "n" ]; then
+            msInstallationWarningAccepted=no
+        elif ${msInstallationWarningAccepted} = "Y" ]; then
+            msInstallationWarningAccepted=yes
+        elif ${msInstallationWarningAccepted} = "y" ]; then
+            msInstallationWarningAccepted=yes
+        fi
+        break
+    done
+    if [ ${msInstallationWarningAccepted} = "yes" ]; then
+        echo "${installingMultimediaSoftware}" && echo ""
+        if [ ${msPkgs} = *"spotify-client"* ]; then
+            dpkg --add-architecture i386
+            curl -sS https://download.spotify.com/debian/pubkey_0D811D58.gpg | apt-key add - >/dev/null
+            echo "deb http://repository.spotify.com stable non-free" | tee /etc/apt/sources.list.d/spotify.list >/dev/null
+        elif [ ${msPkgs} = *"discord"* ]; then
+            dpkg --add-architecture i386
+            curl -L https://dl.discordapp.net/apps/linux/0.0.12/discord-0.0.12.deb > discord-0.0.12.deb
+            gdebi -nq discord-0.0.12.deb >/dev/null
+        fi
+        apt update >/dev/null && apt-get install -yy ${msPkgs} >/dev/null
+        else
+            echo "${warningPromptDisagrement}" && echo ""
+    fi
+}
+
+setupDeveloperSoftware() {
+	if [ ! -f ${configDir}pkgs.conf ]; then
+        dsPkgs="code mesa-opencl-icd"
+		else
+			. ${configDir}pkgs.conf
+	fi
+    echo "${developerSoftwareWarning}"
+    while true; do
+    read -p "${warningPrompt}" dsInstallationWarningAccepted
+        if [ -z ${dsInstallationWarningAccepted} ]; then
+            dsInstallationWarningAccepted=no
+        elif ${dsInstallationWarningAccepted} = "N" ]; then
+            dsInstallationWarningAccepted=no
+        elif ${dsInstallationWarningAccepted} = "n" ]; then
+            dsInstallationWarningAccepted=no
+        elif ${dsInstallationWarningAccepted} = "Y" ]; then
+            dsInstallationWarningAccepted=yes
+        elif ${dsInstallationWarningAccepted} = "y" ]; then
+            dsInstallationWarningAccepted=yes
+        fi
+        break
+    done
+    if [ ${dsInstallationWarningAccepted} = "yes" ]; then
+        echo "" && echo "${installingDeveloperSoftware}" && echo ""
+        if [${dsPkgs} = "code" ]; then
+			apt install -y wget >/dev/null
+            wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg >/dev/null
+			apt purge wget --autoremove -yy
+            install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
+            sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
+        fi
+        apt-get update >/dev/null && apt-get install -yy ${dsPkgs} >/dev/null
+        else
+            echo "${warningPromptDisagrement}" && echo ""
+    fi
+}
+
+setupLatestNvidiaDrivers() {
+	if [ ! -f ${configDir}pkgs.conf ]; then
+        lndPkgs="nvidia-driver nvidia-settings nvidia-opencl-icd"
+		else
+			. ${configDir}pkgs.conf
+	fi
+    echo "${nvidiaLatestDriversWarning}"
+    while true; do
+    read -p "${warningPrompt}" lndInstallationWarningAccepted
+        if [ -z ${lndInstallationWarningAccepted} ]; then
+            lndInstallationWarningAccepted=no
+        elif ${lndInstallationWarningAccepted} = "N" ]; then
+            lndInstallationWarningAccepted=no
+        elif ${lndInstallationWarningAccepted} = "n" ]; then
+            lndInstallationWarningAccepted=no
+        elif ${lndInstallationWarningAccepted} = "Y" ]; then
+            lndInstallationWarningAccepted=yes
+        elif ${lndInstallationWarningAccepted} = "y" ]; then
+            lndInstallationWarningAccepted=yes
+        fi
+        break
+    done
+    read -p "${warningPrompt}" lndInstallationWarningAccepted
+    if [ ${lndInstallationWarningAccepted} = "yes" ]; then
+        echo "" && echo "${installingLatestNvidiaDrivers}" && echo ""
+        apt-get install -yy ${lndPkgs} >/dev/null
+        else
+            echo "${warningPromptDisagrement}" && echo ""
+    fi
+}
+
+setupOpenSourceDrivers() {
+    osdPkgs="libgl1-mesa-dri:i386 mesa-vulkan-drivers:i386 libglu1 libglu1:i386 libegl-mesa0 libgbm1 libgl1-mesa-dri {libglapi,libglu1}-mesa libglx-mesa0 libosmesa6 mesa-{utils,va-drivers,vdpau-drivers,vulkan-drivers} xserver-xorg-video-nouveau"
+    echo "${openSourceDriversWarning}"
+    read -p "${warningPrompt}" osdInstallationWarningAccepted
+        if [ -z ${lndInstallationWarningAccepted} ]; then
+            lndInstallationWarningAccepted=no
+        elif ${lndInstallationWarningAccepted} = "N" ]; then
+            lndInstallationWarningAccepted=no
+        elif ${lndInstallationWarningAccepted} = "n" ]; then
+            lndInstallationWarningAccepted=no
+        elif ${lndInstallationWarningAccepted} = "Y" ]; then
+            lndInstallationWarningAccepted=yes
+        elif ${lndInstallationWarningAccepted} = "y" ]; then
+            lndInstallationWarningAccepted=yes
+        fi
+        break
+    if [ ${osdInstallationWarningAccepted} = "yes" ]; then
+        echo "" && echo "${installingOpenSourceDrivers}" && echo ""
+        apt-get install -yy ${osdPkgs} >/dev/null
+        else
+            echo "${warningPromptDisagrement}" && echo ""
+    fi
+}
+
+systemReadiness() {
+        echo "${systemSettings_systemReadiness_checkingForUpdates}"
         apt-get update -yy &>/dev/null
         apt-get upgrade -yy &>/dev/null
-        sleep 16.5
 
-        echo -e "XXX\81\nGenerating clean APT file '/etc/apt/sources.list'...\nXXX"
-        printf '#
-# DEBIAN REPOSITORIES
-#
-deb http://deb.debian.org/debian/ buster main
-deb-src http://deb.debian.org/debian/ buster main
-deb http://security.debian.org/debian-security buster/updates main
-deb-src http://security.debian.org/debian-security buster/updates main
-deb http://deb.debian.org/debian/ buster-updates main
-deb-src http://deb.debian.org/debian/ buster-updates main
-deb http://deb.debian.org/debian/ buster-backports main
-deb-src http://deb.debian.org/debian/ buster-backports main' > /etc/apt/sources.list
-
-        echo -e "XXX\n100\nDone. Starting script...\nXXX"
-        sleep 5
-
-        break
-    } | whiptail --backtitle "${txtextrassetup_sysreadiness}" --gauge "Please wait..." 8 70 0
+        echo "${systemSettings_systemReadiness_generatingAptSourcesList}"
+        cp /etc/apt/sources.list /etc/apt/sources.list.backup
+        if [ ${repository} = "free" ]; then
+            printf '#\n# DEBIAN REPOSITORIES\n#\ndeb http://deb.debian.org/debian/ buster main\ndeb-src http://deb.debian.org/debian/ buster main\ndeb http://security.debian.org/debian-security buster/updates main\ndeb-src http://security.debian.org/debian-security buster/updates main\ndeb http://deb.debian.org/debian/ buster-updates main\ndeb-src http://deb.debian.org/debian/ buster-updates main\ndeb http://deb.debian.org/debian/ buster-backports main\ndeb-src http://deb.debian.org/debian/ buster-backports main' > /etc/apt/sources.list
+        elif [ ${repository} = "nonfree" ]; then
+            printf '#\n# DEBIAN REPOSITORIES\n#\ndeb http://deb.debian.org/debian/ buster main contrib nonfree\ndeb-src http://deb.debian.org/debian/ buster main contrib nonfree\ndeb http://security.debian.org/debian-security buster/updates main contrib nonfree\ndeb-src http://security.debian.org/debian-security buster/updates main contrib nonfree\ndeb http://deb.debian.org/debian/ buster-updates main contrib nonfree\ndeb-src http://deb.debian.org/debian/ buster-updates main contrib nonfree\ndeb http://deb.debian.org/debian/ buster-backports main contrib nonfree\ndeb-src http://deb.debian.org/debian/ buster-backports main contrib nonfree' > /etc/apt/sources.list
+        fi
 }
 
-baseSetup(){
-    options=()
-    options+=("${txtsetupbaseinstalldesktop}" "${txtsetupbaseinstalldesktopdesc}")
-    options+=("${txtsetupbaseswapfile4g}" "${txtsetupbaseswapfile4gdesc}")
-    options+=("${txtsetupbaseswapfile8g}" "${txtsetupbaseswapfile8gdesc}")
-    sel=$(whiptail --backtitle "${appTitle}" --title "${txtbasesetup}" --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
-        "${options[@]}" \
-        3>&1 1>&2 2>&3)
-    if [ "$?" = "0" ]; then
-        clear
-        if [ "${sel}" = "${txtsetupbaseswapfile4g}" ]; then
-            {
-                sleep 0.5
-                echo -e "XXX\n20\nAllocating 4 GiB to the new file '/swapfile'... \nXXX"
-                fallocate -l 4G /swapfile &>/dev/null
-                sleep 1
+setupSwapFile() {
+    read -p "${systemSettings_createSwapFile_fileSize}" createSwapFile_size
+    dd if=/dev/zero of=/swapfile bs=1M count=${createSwapFile_size} >/dev/null
+    chmod 600 /swapfile
+    sudo mkswap -L swap /swapfile >/dev/null
+    sudo swapon /swapfile >/dev/null
+    echo "/swapfile swap swap sw 0 0" >> /etc/fstab
+}
 
-                echo -e "XXX\n40\nSecuring file '/swapfile' with permissions 0600... \nXXX"
-                chmod 0600 /swapfile &>/dev/null
-                sleep 1
+setupDebianFixes() {
+    echo "${systemSettings_applyDebianFixes_pleaseWait}"
+    sed -e 11's/.*/# &//' /etc/network/interfaces && sed -e 12's/.*/# &//' /etc/network/interfaces
+    printf '[main]\nplugins=keyfile,ifupdown\n\n[ifupdown]\nmanaged=true\n' > /etc/NetworkManager/NetworkManager.conf
+    systemctl restart NetworkManager
+    printf 'options bluetooth disable_ertm=1\n' > /etc/modprobe.d/bluetooth.conf
+    sed -i 's/; flat-volumes = yes/flat-volumes = no/g' /etc/pulse/daemon.conf
+    printf 'snd_hda_intel enable_msi=1\n' /etc/modprobe.d/snd_hda_intel.conf
+}
 
-                echo -e "XXX\n60\nMaking swap with label 'swap' on file '/swapfile'... \nXXX"
-                mkswap -L swap /swapfile &>/dev/null
-                sleep 1
+setupVirtualization() {
+	dependencies="qemu-kvm ovmf bridge-utils"
+	sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on iommu=pt isolcpus= nohz_full= rcu_nocbs= default_hugepagesz=1G hugepagesz=1G hugepages=16 rd.driver.pre=vfio-pci video=efifb:off"/g' /etc/default/grub
+	printf 'options kvm_intel nested=1\noptions kvm-intel enable_shadow_vmcs=1\noptions kvm-intel enable_apicv=1\noptions kvm-intel ept=1\n' > /etc/modprobe.d/kvm.conf
+	printf 'blacklist nouveau\noptions nouveau modeset=0\n' > /etc/modprobe.d/nouveau.conf
+    printf 'options vfio-pci ids=\n' > /etc/modprobe.d/vfio.conf
+}
 
-                echo -e "XXX\n80\Activating swap on file '/swapfile'... \nXXX"
-                swapon /swapfile &>/dev/null
-                sleep 1
-
-                echo -e "XXX\n100\nAdding swap entry to '/etc/fstab'... \nXXX"
-                echo "/swapfile swap swap sw 0 0" >> /etc/fstab
-                sleep 5
-            } | whiptail --backtitle "${appTitle}" --title "${txtsetupbaseswapfile4g}" --gauge "Loading..." 8 70 0
-            nextitem="."
-        elif [ "${sel}" = "${txtsetupbaseswapfile8g}" ]; then
-            {
-                sleep 1
-                echo -e "XXX\n20\nAllocating 8 GiB to the new file '/swapfile'... \nXXX"
-                fallocate -l 8G /swapfile &>/dev/null
-                sleep 1
-
-                echo -e "XXX\n40\nSecuring file '/swapfile' with permissions 0600... \nXXX"
-                chmod 0600 /swapfile &>/dev/null
-                sleep 1
-
-                echo -e "XXX\n60\nMaking swap with label 'swap' on file '/swapfile'... \nXXX"
-                mkswap -L swap /swapfile &>/dev/null
-                sleep 1
-
-                echo -e "XXX\n80\Activating swap on file '/swapfile'... \nXXX"
-                swapon /swapfile &>/dev/null
-                sleep 1
-
-                echo -e "XXX\n100\nAdding swap entry to '/etc/fstab'... \nXXX"
-                echo "/swapfile swap swap sw 0 0" >> /etc/fstab
-                sleep 5
-            } | whiptail --backtitle "${appTitle}" --title "${txtsetupbaseswapfile8g}" --gauge "Please wait..." 8 70 0
-            nextitem="."
-        fi
-        if [ "${sel}" = "${txtsetupbaseinstalldesktop}" ]; then
-            options=()
-            options+=("GNOME" "${txtmadeby}")
-            options+=("KDE Plasma" "${txtmadeby}")
-            options+=("Xfce" "${txtmadeby_wip}")
-            sel=$(whiptail --backtitle "${appTitle}" --title "${txtsetupbaseselectdesktop}" --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
-            "${options[@]}" \
-            3>&1 1>&2 2>&3)
-        if [ "$?" = "0" ]; then
-            clear
-            if [ "${sel}" = "GNOME" ]; then
-                {
-                    sleep 1
-                    echo -e "XXX\n50\nInstalling GNOME Display Manager... \nXXX"
-                    apt-get install -yy gdm3* &>/dev/null
-                    sleep 60
-                    echo -e "XXX\n100\nGNOME Display Manager was installed successfully. Returning to main menu\nXXX"
-                    sleep 5
-                } | whiptail --backtitle "${appTitle}" --title "GNOME" --gauge "Please wait..." 10 70 0
-                nextitem="."
-            elif [ "${sel}" = "KDE Plasma" ]; then
-                {
-                    sleep 1
-                    echo -e "XXX\n50\nInstalling KDE Display Manager... \nXXX"
-                    apt-get install -yy sddm* &>/dev/null
-                    apt-get purge -yy discover plasma-discover kinfocenter xterm --autoremove &>/dev/null
-                    sleep 50
-
-                    echo -e "XXX\n100\nKDE Display Manager was installed successfully. Returning to main menu\nXXX"
-                    sleep 5
-                } | whiptail --backtitle "${appTitle}" --title "${txtsetupbaseinstalldesktop}" --gauge "Please wait..." 10 70 0
-                nextitem="."
-            elif [ "${sel}" = "Xfce" ]; then
-                {
-                    sleep 1
-                    echo -e "XXX\n50\nInstalling Xfce core packages... \nXXX"
-                    apt-get install -yy xfwm4 xfdesktop4 xfce4-panel xfce4-panel xfce4-settings xfce4-power-manager xfce4-session xfconf xfce4-notifyd &>/dev/null
-                    sleep 60
-                    echo -e "XXX\n100\Xfce core packages were successfully installed. \nXXX"
-                    sleep 5
-                } | whiptail --backtitle "${appTitle}" --title "${txtsetupbaseinstalldesktop}" --gauge "Please wait..." 8 70 0
-                nextitem="."
-            fi
-        fi
-    fi
+# Consider user choices from the main.conf file, then initialize script functions in this order
+welcome
+root
+setupDesktopEnviroment
+if [ ${installBasicSystemTools} = "no" ]; then
+    echo "${notInstallingBasicSystemTools}" && echo ""
+elif [ ${installBasicSystemTools} = "yes" ]; then
+        setupBasicSystemTools
+    else
+        echo "${invalidConfig}"
+        exit 2
 fi
-}
-
-extrasSetup(){
-    options=()
-    options+=("${txtextrassetup_sysreadiness}" "(Required for the latest updates)")
-    options+=("${txtextrassetup_bsystools}" "(Install basic system tools)")
-    options+=("${txtextrassetup_bsystools_gnome}" "(Install GNOME basic tools)")
-    options+=("${txtextrassetup_bsystools_kde}" "(Install KDE basic tools)")
-    options+=("${txtextrassetup_bsystools_xfce}" "(Install XFCE basic tools)")
-    options+=("${txtextrassetup_bsystools_xfce_plugins}" "(Install XFCE basic plugins)")
-    options+=("${txtextrassetup_webbrowser}" "(Install a web browser)")
-    options+=("${txtextrassetup_officesuite}" "(Install LibreOffice)")
-    options+=("${txtextrassetup_gaming}" "(Install software made to play games)")
-    options+=("${txtextrassetup_multimedia}" "(Install software for multimedia purposes)")
-    options+=("${txtextrassetup_amd_intel}" "(Install Mesa and Vulkan open source drivers)")
-    options+=("${txtextrassetup_material_debian}" "(Installs material focused themes, icons and fonts)")
-    sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup}" --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
-        "${options[@]}" \
-        3>&1 1>&2 2>&3)
-    if [ "$?" = "0" ]; then
-        clear
-        if [ "${sel}" = "${txtextrassetup_sysreadiness}" ]; then
-            systemReadiness
-            nextitem="."
-        elif [ "${sel}" = "${txtextrassetup_bsystools}" ]; then
-            pkgs=""
-            options=()
-            options+=("fail2ban" "Network monitoring tool which bans hosts that cause multiple authentication errors" on)
-            options+=("selinux-basics" "Basic SELinux stuff for easier installation" on)
-            options+=("selinux-policy-default" "SELinux default policies" on)
-            options+=("htop" "Command-line system monitor" off)
-            options+=("terminator" "Terminator terminal" off)
-            options+=("neofetch" "Command-line system information tool" off)
-            options+=("gufw" "Graphical uncomplicated firewall" on)
-            options+=("clamtk" "Graphical front-end for Clam Antivirus" on)
-            options+=("gcc" "GNU C Compiler" on)
-            options+=("make" "Building utility" on)
-            options+=("firmware-linux" "Open-source firmware for devices" on)
-            options+=("curl" "Command-line tool to transferring data" on)
-            options+=("linux-headers-$(uname -r)" "Linux headers files" on)
-            options+=("build-essentials" "Tools required for building from source" on)
-            sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_gnome}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
-                "${options[@]}" \
-                3>&1 1>&2 2>&3)
-            if [ ! "$?" = "0" ]; then
-                return 1
-            fi
-            for itm in $sel; do
-                pkgs="$pkgs $(echo $itm | sed 's/"//g')"
-            done
-            clear
-            {
-                sleep 5
-                echo -e "XXX\n0\Checking for updates and installing them if any... \nXXX"
-                apt-get update -yy &>/dev/null
-                apt-get -yy upgrade &>/dev/null
-                sleep 20
-
-                echo -e "XXX\n50\nInstalling and configuring GNOME Basic System Tools... \nXXX"
-                apt-get install -yy ${pkgs} &>/dev/null
-                sleep 50
-                
-                if [[ ${pkgs} = *"selinux-basics"* ]]; then
-                    if [[ ${pkgs} = *"selinux-policy-default"* ]]; then
-                        cp /etc/selinux/config /etc/selinux/config.backup
-                        printf '# This file controls the state of SELinux on the system.
-# SELINUX= can take one of these three values:
-# enforcing - SELinux security policy is enforced.
-# permissive - SELinux prints warnings instead of enforcing.
-# disabled - No SELinux policy is loaded.
-SELINUX=enforcing
-# SELINUXTYPE= can take one of these two values:
-# default - equivalent to the old strict and targeted policies
-# mls     - Multi-Level Security (for military and educational use)
-# src     - Custom policy built from source
-SELINUXTYPE=mls
-
-# SETLOCALDEFS= Check local definition changes
-SETLOCALDEFS=0' > /etc/selinux/config
-                    fi
-                fi
-
-                echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
-                sleep 5
-            } | whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_gnome}" --gauge "Loading..." 8 70 0
-            nextitem="."
-        elif [ "${sel}" = "${txtextrassetup_bsystools_gnome}" ]; then
-            pkgs=""
-            options=()
-            options+=("nautilus" "GNOME file manager" on)
-            options+=("network-manager-openvpn-gnome" "OpenVPN plugin for GNOME" off)
-            options+=("gnome-terminal" "GNOME terminal" on)
-            options+=("gedit" "GNOME text editor" on)
-            options+=("clamtk-gnome" "ClamTk integration with GNOME" on)
-            options+=("gnome-disk-utility" "GNOME disk utility" on)
-            options+=("gnome-system-monitor" "GNOME system monitor" on)
-            sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_gnome}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
-                "${options[@]}" \
-                3>&1 1>&2 2>&3)
-            if [ ! "$?" = "0" ]; then
-                return 1
-            fi
-            for itm in $sel; do
-                pkgs="$pkgs $(echo $itm | sed 's/"//g')"
-            done
-            clear
-            {
-                sleep 5
-                echo -e "XXX\n0\Checking for updates and installing them if any... \nXXX"
-                apt-get -yy upgrade &>/dev/null
-                sleep 20
-
-                echo -e "XXX\n50\nInstalling and configuring GNOME Basic System Tools... \nXXX"
-                apt-get install -yy ${pkgs} &>/dev/null
-                sleep 50
-
-                echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
-                sleep 5
-            } | whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_gnome}" --gauge "Loading..." 8 70 0
-            nextitem="."
-        elif [ "${sel}" = "${txtextrassetup_bsystools_kde}" ]; then
-            pkgs=""
-            options=()
-            options+=("plasma-nm" "Plasma applet for managing network connections" on)
-            options+=("dolphin" "KDE file manager" on)
-            options+=("konsole" "KDE terminal" on)
-            options+=("kate" "KDE advanced text editor" on)
-            options+=("kwin-x11" "Window manager for X11" on)
-            options+=("kwin-wayland" "Window manager for Wayland" on)
-            options+=("gparted" "GNOME partition editor" off)
-            options+=("ksysguard" "KDE system monitor" on)
-            sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_kde}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
-                "${options[@]}" \
-                3>&1 1>&2 2>&3)
-            if [ ! "$?" = "0" ]; then
-                return 1
-            fi
-            for itm in $sel; do
-                pkgs="$pkgs $(echo $itm | sed 's/"//g')"
-            done
-            clear
-            {
-                sleep 5
-                echo -e "XXX\n0\Checking for updates and installing them if any... \nXXX"
-                apt-get update &>/dev/null
-                apt-get upgrade -yy &>/dev/null
-                sleep 20
-
-                echo -e "XXX\n50\nInstalling and configuring KDE basic system tools... \nXXX"
-                apt-get install -yy ${pkgs} &>/dev/null
-                sleep 50
-
-                echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
-                sleep 5
-            } | whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_kde}" --gauge "Loading..." 8 70 0
-            nextitem="."
-        elif [ "${sel}" = "${txtextrassetup_bsystools_xfce}" ]; then
-            pkgs=""
-            options=()
-            options+=("thunar" "File manager for Xfce" on)
-            options+=("mousepad" "Xfce text editor" on)
-            options+=("ristretto" "Lightweight picture-viewer for Xfce" on)
-            options+=("xfce4-taskmanager" "Process manager for Xfce" on)
-            options+=("xfce4-screenshooter" "Screenshots utility for Xfce" off)
-            options+=("xfce4-terminal" "Xfce terminal emulator" on)
-            options+=("xfce4-notes" "Notes application for Xfce" off)
-            options+=("xfce4-goodies" "Enhancements for Xfce" on)
-            options+=("xfce4-appfinder" "Application finder for Xfce" on)
-            options+=("xfce4-clipman" "Clipboard history utility for Xfce" off)
-            options+=("xfwm4-themes" "Theme files for xfwm4" on)
-            options+=("xfburn" "CD-burner application for Xfce" off)
-            options+=("orage" "Calendar for Xfce" off)
-            sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_xfce}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
-                "${options[@]}" \
-                3>&1 1>&2 2>&3)
-            if [ ! "$?" = "0" ]; then
-                return 1
-            fi
-            for itm in $sel; do
-                pkgs="$pkgs $(echo $itm | sed 's/"//g')"
-            done
-            clear
-            {
-                sleep 5
-                echo -e "XXX\n0\Checking for updates and installing them if any... \nXXX"
-                apt-get -yy upgrade &>/dev/null
-                sleep 20
-
-                echo -e "XXX\n50\nInstalling and configuring Xfce basic system tools... \nXXX"
-                apt-get install -yy ${pkgs} &>/dev/null
-                sleep 50
-
-                echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
-                sleep 5
-            } | whiptail --backtitle "${appTitle}" --title "${txtextrassetup_bsystools_xfce}" --gauge "Loading..." 8 70 0
-            nextitem="."
-        elif [ "${sel}" = "${txtextrassetup_webbrowser}" ]; then
-            pkgs=""
-            options=()
-            options+=("firefox-esr" "Mozilla's official web browser (Extended Support Release) (GTK)" on)
-            options+=("chromium" "Chromium open-source web browser (GTK)" off)
-            sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_webbrowser}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
-                "${options[@]}" \
-                3>&1 1>&2 2>&3)
-            if [ ! "$?" = "0" ]; then
-                return 1
-            fi
-            for itm in $sel; do
-                pkgs="$pkgs $(echo $itm | sed 's/"//g')"
-            done
-            clear
-            {
-                sleep 5
-                echo -e "XXX\n0\Checking for updates and installing them if any... \nXXX"
-                apt-get -yy upgrade &>/dev/null
-                sleep 20
-
-                echo -e "XXX\n50\nInstalling and configuring web browser(s)... \nXXX"
-                apt-get install -yy ${pkgs} &>/dev/null
-
-                sleep 30
-                echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
-                sleep 5
-            } | whiptail --backtitle "${appTitle}" --title "${txtextrassetup_webbrowser}" --gauge "Loading..." 8 70 0
-            nextitem="."
-        elif [ "${sel}" = "${txtextrassetup_officesuite}" ]; then
-            {
-                sleep 5
-                echo -e "XXX\n0\Checking for updates and installing them if any... \nXXX"
-                apt-get -yy upgrade &>/dev/null
-                sleep 20
-
-                echo -e "XXX\n50\nInstalling and configuring office suite software... \nXXX"
-                apt-get install -yy libreoffice &>/dev/null
-                sleep 50
-                
-                echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
-                sleep 5
-            } | whiptail --backtitle "${appTitle}" --title "${txtextrassetup_officesuite}" --gauge "Loading..." 8 70 0
-            nextitem="."
-        elif [ "${sel}" = "${txtextrassetup_gaming}" ]; then
-            pkgs=""
-            options=()
-            options+=("pcsx2" "PlayStation 2 (PS2) Emulator (GTK)" off)
-            sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_gaming}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
-                "${options[@]}" \
-                3>&1 1>&2 2>&3)
-            if [ ! "$?" = "0" ]; then
-                return 1
-            fi
-            for itm in $sel; do
-                pkgs="$pkgs $(echo $itm | sed 's/"//g')"
-            done
-            clear
-            {
-                sleep 5
-                echo -e "XXX\n0\Checking for updates and installing them if any... \nXXX"
-                apt-get -yy upgrade &>/dev/null
-                sleep 20
-
-                echo -e "XXX\n50\nInstalling and configuring gaming software... \nXXX"
-                apt-get install -yy ${pkgs} &>/dev/null
-
-                sleep 30
-                echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
-                sleep 5
-            } | whiptail --backtitle "${appTitle}" --title "${txtextrassetup_gaming}" --gauge "Loading..." 8 70 0
-            nextitem="."
-        elif [ "${sel}" = "${txtextrassetup_multimedia}" ]; then
-            pkgs=""
-            options=()
-            options+=("gimp" "GNU Image Manipulation Image (GTK)" off)
-            options+=("obs-studio" "Software for recording and streaming" off)
-            sel=$(whiptail --backtitle "${appTitle}" --title "${txtextrassetup_multimedia}" --fb --ok-button "${txtok}" --checklist "" 0 0 0 \
-                "${options[@]}" \
-                3>&1 1>&2 2>&3)
-            if [ ! "$?" = "0" ]; then
-                return 1
-            fi
-            for itm in $sel; do
-                pkgs="$pkgs $(echo $itm | sed 's/"//g')"
-            done
-            clear
-            {
-                sleep 5
-                echo -e "XXX\n0\Checking for updates and installing them if any... \nXXX"
-                apt-get update &>/dev/null
-                apt-get -yy upgrade &>/dev/null
-                sleep 20
-
-                echo -e "XXX\n50\nInstalling and configuring multimedia software... \nXXX"
-                apt-get install -yy ${pkgs} &>/dev/null
-
-                sleep 30
-                echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
-                sleep 5
-            } | whiptail --backtitle "${appTitle}" --title "${txtextrassetup_multimedia}" --gauge "Loading..." 8 70 0
-            nextitem="."
-        elif [ "${sel}" = "${txtextrassetup_amd_intel}" ]; then
-                while true; do
-                    read -p "${txtextrassetup_amd_intel_dialog}" input
-                    case $input in
-                            [Yy]* ) {
-                                        sleep 5
-                                        echo -e "XXX\n0\Checking for updates and installing them if any... \nXXX"
-                                        apt-get -yy upgrade &>/dev/null
-                                        sleep 20
-
-                                        echo -e "XXX\n50\nInstalling and configuring Mesa/Vulkan open-source drivers... \nXXX"
-                                        apt-get install -yy libgl1-mesa-dri:i386 mesa-vulkan-drivers mesa-vulkan-drivers:i386 &>/dev/null
-                                        sleep 30
-
-                                        echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
-                                        sleep 5
-                                    } | whiptail --backtitle "${appTitle}" --title "${txtextrassetup_amd_intel}" --gauge "Loading..." 8 70 0; break;;
-                            [Nn]* ) break;;
-                            * ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
-                    esac
-                done
-            nextitem="."
-        elif [ "${sel}" = "${txtextrassetup_material_debian}" ]; then
-                while true; do
-                    read -p "${txtextrassetup_material_debian_dialog}" input
-                    case $input in
-                            [Yy]* ) {
-                                        sleep 5
-                                        echo -e "XXX\n0\Checking for updates and installing them if any... \nXXX"
-                                        apt-get -yy upgrade &>/dev/null
-                                        sleep 20
-
-                                        echo -e "XXX\n50\nInstalling and configuring Material Debian... \nXXX"
-                                        apt-get install -yy materia-gtk-theme papirus-icon-theme gnome-tweaks gnome-shell-extensions fonts-roboto
-                                        rm -rf /usr/share/gnome-shell/extensions/alternate-tab@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/apps-menu@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/auto-move-windows@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/drive-menu@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/launch-new-instance@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/native-window-placement@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/places-menu@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/screenshot-window-sizer@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/window-list@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/windowsNavigator@gnome-shell-extensions.gcampax.github.com/ /usr/share/gnome-shell/extensions/workspace-indicator@gnome-shell-extensions.gcampax.github.com/
-                                        sleep 30
-
-                                        echo -e "XXX\n100\nInstallation done. Returning to main menu...\nXXX"
-                                        sleep 5
-                                    } | whiptail --backtitle "${appTitle}" --title "${txtextrassetup_material_debian}" --gauge "Loading..." 8 70 0; break;;
-                            [Nn]* ) break;;
-                            * ) echo -e ${red}"Error. '$input' is out of range. Try again with Y or N."${normalText};;
-                    esac
-                done
-            nextitem="."
-        fi
-    fi
-}
-
-basicVirtualizationSetup(){
-    # select menu
-    # credits to https://askubuntu.com/users/877/paused-until-further-notice
-    # source: https://askubuntu.com/questions/1705/how-can-i-create-a-select-menu-in-a-shell-script
-    clear
-    consent=$(whiptail --inputbox "${txtvirtualizationprompt_warning}" 15 85 --fb --ok-button "${txtok}" --cancel-button "${txtabort}" --title "${txtvirtualization}" 3>&1 1>&2 2>&3)
-    if [ ${consent} = "yes" ]; then
-            cpubrand=$(whiptail --inputbox "${txtvirtualizationprompt}" 15 85 --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --title "${txtvirtualization}" 3>&1 1>&2 2>&3)
-            if [ ${cpubrand} = "intel" ]; then
-                apt-get install -yy qemu-kvm virt-manager bridge-utils ovmf &>/dev/null; cp /etc/default/grub /etc/default/grub.backup && cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup; printf '# If you change this file, run "update-grub" afterwards to update
-# /boot/grub/grub.cfg.
-# For full documentation of the options in this file, see:
-#   info -f grub -n "Simple configuration"
-GRUB_DEFAULT=0
-GRUB_TIMEOUT=5
-GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on iommu=pt"
-GRUB_CMDLINE_LINUX=""
-# Uncomment to enable BadRAM filtering, modify to suit your needs
-# This works with Linux (no patch required) and with any kernel that obtains
-# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
-#GRUB_BADRAM="0x01234567,0xfefefefe,0x89abcdef,0xefefefef"
-# Uncomment to disable graphical terminal (grub-pc only)
-#GRUB_TERMINAL=console
-# The resolution used on graphical terminal
-# note that you can use only modes which your graphic card supports via VBE
-# you can see them in real GRUB with the command "vbeinfo"
-#GRUB_GFXMODE=640x480
-# Uncomment if you do not want GRUB to pass "root=UUID=xxx" parameter to Linux
-#GRUB_DISABLE_LINUX_UUID=true
-# Uncomment to disable generation of recovery mode menu entries
-#GRUB_DISABLE_RECOVERY="true"
-# Uncomment to get a beep at grub start
-#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub; printf 'options kvm_intel nested=1
-options kvm-intel enable_shadow_vmcs=1
-options kvm-intel enable_apicv=1
-options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf; update-grub &>/dev/null; update-initramfs -u -k all &>/dev/null
-        fi
-
-        if [ ${cpubrand} = "amd" ]; then
-            apt-get install -yy qemu-kvm virt-manager bridge-utils ovmf &>/dev/null; cp /etc/default/grub /etc/default/grub.backup && cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup; printf '# If you change this file, run "update-grub" afterwards to update
-# /boot/grub/grub.cfg.
-# For full documentation of the options in this file, see:
-#   info -f grub -n "Simple configuration"
-GRUB_DEFAULT=0
-GRUB_TIMEOUT=5
-GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amd_iommu=on iommu=pt"
-GRUB_CMDLINE_LINUX=""
-# Uncomment to enable BadRAM filtering, modify to suit your needs
-# This works with Linux (no patch required) and with any kernel that obtains
-# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
-#GRUB_BADRAM="0x01234567,0xfefefefe,0x89abcdef,0xefefefef"
-# Uncomment to disable graphical terminal (grub-pc only)
-#GRUB_TERMINAL=console
-# The resolution used on graphical terminal
-# note that you can use only modes which your graphic card supports via VBE
-# you can see them in real GRUB with the command "vbeinfo"
-#GRUB_GFXMODE=640x480
-# Uncomment if you do not want GRUB to pass "root=UUID=xxx" parameter to Linux
-#GRUB_DISABLE_LINUX_UUID=true
-# Uncomment to disable generation of recovery mode menu entries
-#GRUB_DISABLE_RECOVERY="true"
-# Uncomment to get a beep at grub start
-#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub; printf 'options kvm_amd nested=1
-options kvm-amd enable_shadow_vmcs=1
-options kvm-amd enable_apicv=1
-options kvm-amd ept=1' > /etc/modprobe.d/kvm.conf; update-grub &>/dev/null; update-initramfs -u -k all &>/dev/null
-        fi
-        mainMenu
-    elif [ ${consent} = "no" ]; then
-        mainMenu
-    fi
-    nextitem="${txtreboot}"
-}
-
-fullVirtualizationSetup(){
-    # select menu
-    # credits to https://askubuntu.com/users/877/paused-until-further-notice
-    # source: https://askubuntu.com/questions/1705/how-can-i-create-a-select-menu-in-a-shell-script
-    clear
-    consent=$(whiptail --inputbox "${txtvirtualizationprompt_warning}" 15 85 --fb --ok-button "${txtok}" --cancel-button "${txtabort}" --title "${txtvirtualization}" 3>&1 1>&2 2>&3)
-    if [ ${consent} = "yes" ]; then
-            cpubrand=$(whiptail --inputbox "${txtvirtualizationprompt}" 15 85 --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --title "${txtvirtualization}" 3>&1 1>&2 2>&3)
-            if [ ${cpubrand} = "intel" ]; then
-                apt-get install -yy qemu-kvm virt-manager bridge-utils ovmf &>/dev/null; cp /etc/default/grub /etc/default/grub.backup && cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup; printf '# If you change this file, run "update-grub" afterwards to update
-# /boot/grub/grub.cfg.
-# For full documentation of the options in this file, see:
-#   info -f grub -n "Simple configuration"
-GRUB_DEFAULT=0
-GRUB_TIMEOUT=5
-GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on iommu=pt isolcpus=2,3,4,5 nohz_full=2,3,4,5 rcu_nocbs=2,3,4,5 default_hugepagesz=1G hugepagesz=1G hugepages=16 rd.driver.pre=vfio-pci video=efifb:off"
-GRUB_CMDLINE_LINUX=""
-# Uncomment to enable BadRAM filtering, modify to suit your needs
-# This works with Linux (no patch required) and with any kernel that obtains
-# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
-#GRUB_BADRAM="0x01234567,0xfefefefe,0x89abcdef,0xefefefef"
-# Uncomment to disable graphical terminal (grub-pc only)
-#GRUB_TERMINAL=console
-# The resolution used on graphical terminal
-# note that you can use only modes which your graphic card supports via VBE
-# you can see them in real GRUB with the command "vbeinfo"
-#GRUB_GFXMODE=640x480
-# Uncomment if you do not want GRUB to pass "root=UUID=xxx" parameter to Linux
-#GRUB_DISABLE_LINUX_UUID=true
-# Uncomment to disable generation of recovery mode menu entries
-#GRUB_DISABLE_RECOVERY="true"
-# Uncomment to get a beep at grub start
-#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub; printf 'options kvm_intel nested=1
-options kvm-intel enable_shadow_vmcs=1
-options kvm-intel enable_apicv=1
-options kvm-intel ept=1' > /etc/modprobe.d/kvm.conf; printf 'options vfio-pci ids=' > /etc/modprobe.d/vfio.conf; update-grub &>/dev/null; update-initramfs -u -k all &>/dev/null
-        fi
-
-        if [ ${cpubrand} = "amd" ]; then
-            apt-get install -yy qemu-kvm virt-manager bridge-utils ovmf &>/dev/null; cp /etc/default/grub /etc/default/grub.backup && cp /etc/initramfs-tools/modules /etc/initramfs-tools/modules.backup; printf '# If you change this file, run "update-grub" afterwards to update
-# /boot/grub/grub.cfg.
-# For full documentation of the options in this file, see:
-#   info -f grub -n "Simple configuration"
-GRUB_DEFAULT=0
-GRUB_TIMEOUT=5
-GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amd_iommu=on iommu=pt isolcpus=2,3,4,5 nohz_full=2,3,4,5 rcu_nocbs=2,3,4,5 default_hugepagesz=1G hugepagesz=1G hugepages=16 rd.driver.pre=vfio-pci video=efifb:off"
-GRUB_CMDLINE_LINUX=""
-# Uncomment to enable BadRAM filtering, modify to suit your needs
-# This works with Linux (no patch required) and with any kernel that obtains
-# the memory map information from GRUB (GNU Mach, kernel of FreeBSD ...)
-#GRUB_BADRAM="0x01234567,0xfefefefe,0x89abcdef,0xefefefef"
-# Uncomment to disable graphical terminal (grub-pc only)
-#GRUB_TERMINAL=console
-# The resolution used on graphical terminal
-# note that you can use only modes which your graphic card supports via VBE
-# you can see them in real GRUB with the command "vbeinfo"
-#GRUB_GFXMODE=640x480
-# Uncomment if you do not want GRUB to pass "root=UUID=xxx" parameter to Linux
-#GRUB_DISABLE_LINUX_UUID=true
-# Uncomment to disable generation of recovery mode menu entries
-#GRUB_DISABLE_RECOVERY="true"
-# Uncomment to get a beep at grub start
-#GRUB_INIT_TUNE="480 440 1"' > /etc/default/grub; printf 'options kvm_amd nested=1
-options kvm-amd enable_shadow_vmcs=1
-options kvm-amd enable_apicv=1
-options kvm-amd ept=1' > /etc/modprobe.d/kvm.conf; printf 'options vfio-pci ids=' > /etc/modprobe.d/vfio.conf; update-grub &>/dev/null; update-initramfs -u -k all &>/dev/null
-        fi
-        mainMenu
-    elif [ ${consent} = "no" ]; then
-        mainMenu
-    fi
-    nextitem="${txtreboot}"
-}
-
-fixesSetup(){
-    options=()
-    options+=("${txtfixes_fixwiredunmanaged}" "${txtfixes_fixwiredunmanageddesc}")
-    options+=("${txtfixes_disablebluetoothertm}" "${txtfixes_disablebluetoothertmdesc}")
-    options+=("${txtfixes_disablepulseaudioflatvolumes}" "${txtfixes_disablepulseaudioflatvolumesdesc}")
-    sel=$(whiptail --backtitle "${appTitle}" --title "${txtfixes}" --fb --ok-button "${txtok}" --cancel-button "${txtreturn}" --menu "" 0 0 0 \
-        "${options[@]}" \
-        3>&1 1>&2 2>&3)
-    if [ "$?" = "0" ]; then
-        clear
-        if [ "${sel}" = "${txtfixes_fixwiredunmanaged}" ]; then
-            {
-                sleep 1
-                echo -e "XXX\n50\Applying settings... \nXXX"
-            printf '[main]
-plugins=keyfile,ifupdown
-
-[ifupdown]
-managed=true' > /etc/NetworkManager/NetworkManager.conf
-            systemctl restart NetworkManager
-
-                sleep 2
-                echo -e "XXX\n100\Settings applied. Returning to main menu...\nXXX"
-                sleep 5
-            } | whiptail --backtitle "${appTitle}" --title "${txtfixes_disablebluetoothertm}" --gauge "Loading..." 8 70 0
-            nextitem="."
-        elif [ "${sel}" = "${txtfixes_disablebluetoothertm}" ]; then
-            {
-                sleep 1
-
-                echo -e "XXX\n50\Applying settings... \nXXX"
-                printf 'options bluetooth disable_ertm=1' > /etc/modprobe.d/bluetooth.conf
-                sleep 0.5
-
-                echo -e "XXX\n100\Settings applied. Returning to main menu...\nXXX"
-                sleep 5
-            } | whiptail --backtitle "${appTitle}" --title "${txtfixes_disablebluetoothertm}" --gauge "Loading..." 8 70 0
-            nextitem="."
-        elif [ "${sel}" = "${txtfixes_disablepulseaudioflatvolumes}" ]; then
-            {
-                sleep 1
-
-                echo -e "XXX\n50\Applying settings... \nXXX"
-printf '# This file is part of PulseAudio.
-#
-# PulseAudio is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# PulseAudio is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
-
-## Configuration file for the PulseAudio daemon. See pulse-daemon.conf(5) for
-## more information. Default values are commented out.  Use either ; or # for
-## commenting.
-
-; daemonize = no
-; fail = yes
-; allow-module-loading = yes
-; allow-exit = yes
-; use-pid-file = yes
-; system-instance = no
-; local-server-type = user
-; enable-shm = yes
-; enable-memfd = yes
-; shm-size-bytes = 0 # setting this 0 will use the system-default, usually 64 MiB
-; lock-memory = no
-; cpu-limit = no
-
-; high-priority = yes
-; nice-level = -11
-
-; realtime-scheduling = yes
-; realtime-priority = 5
-
-; exit-idle-time = 20
-; scache-idle-time = 20
-
-; dl-search-path = (depends on architecture)
-
-; load-default-script-file = yes
-; default-script-file = /etc/pulse/default.pa
-
-; log-target = auto
-; log-level = notice
-; log-meta = no
-; log-time = no
-; log-backtrace = 0
-
-; resample-method = speex-float-1
-; avoid-resampling = false
-; enable-remixing = yes
-; remixing-use-all-sink-channels = yes
-; enable-lfe-remixing = no
-; lfe-crossover-freq = 0
-
-flat-volumes = no
-
-; rlimit-fsize = -1
-; rlimit-data = -1
-; rlimit-stack = -1
-; rlimit-core = -1
-; rlimit-as = -1
-; rlimit-rss = -1
-; rlimit-nproc = -1
-; rlimit-nofile = 256
-; rlimit-memlock = -1
-; rlimit-locks = -1
-; rlimit-sigpending = -1
-; rlimit-msgqueue = -1
-; rlimit-nice = 31
-; rlimit-rtprio = 9
-; rlimit-rttime = 200000
-
-; default-sample-format = s16le
-; default-sample-rate = 44100
-; alternate-sample-rate = 48000
-; default-sample-channels = 2
-; default-channel-map = front-left,front-right
-
-; default-fragments = 4
-; default-fragment-size-msec = 25
-
-; enable-deferred-volume = yes
-; deferred-volume-safety-margin-usec = 8000
-; deferred-volume-extra-delay-usec = 0' > /etc/pulse/daemon.conf
-                sleep 0.5
-
-                echo -e "XXX\n100\Settings applied. Returning to main menu...\nXXX"
-                sleep 5
-            } | whiptail --backtitle "${appTitle}" --title "${txtfixes_disablepulseaudioflatvolumes}" --gauge "Loading..." 8 70 0
-            nextitem="."
-        fi
-    fi
-}
-
-pressanykey(){
-    read -n1 -p "${txtpressanykey}"
-}
-
-loadstrings_us(){
-    locale="en_US.UTF-8"
-
-    txtyoursys="Your system: "
-
-    txtdisclaimer="DISCLAIMER"
-    txtdisclaimerdesc="This script is in sid/unstable stage and may brake things up or the system entirely.\n\nThat being said, I warn you: DO NOT use this script in your daily driver machine until it's declared rock solid stable.\n\nContinue at your risk."
-
-    txtaccept="Accept"
-    txtrefuse="Refuse"
-    txtabort="Abort"
-
-    txtnotsupportedyet="Unsupported Version"
-    txtnotsupportedyetdesc="Sorry, the version ${distroInfo} is not supported yet."
-
-    txtunsupportedsystem="Unsupported System"
-    txtunsupportedsystemdesc="Sorry, this script cannot proceed. Your system: ${distroSystem}\n\nDistributions are bulky and unstable, and so they are not supported and won't be in the future.\n\nVOldoldstable, oldstable versions; and testing, sid/unstable branches from Debian, are not supported."
-
-    chooselanguage="This script contains two languages: [en/es]. Write down below which one do you prefer.\n\nEste script contiene dos idiomas: [en/es]. Escribe abajo cuál prefieres."
-    lang_us="English (US)"
-    lang_es="Spanish (Spain)"
-    langdesc="(By gfelipe099)"
-
-    txtok="OK"
-    txtexit="Exit"
-    txtreturn="Return"
-    txtignore="Ignore"
-
-    txtmainmenu="Main Menu"
-    txtlanguage="Change Language"
-    txtlanguagedesc="(Default Language: English US)"
-
-    txtbasesetup="Base Setup"
-    txtbasedesc="(Install a desktop enviroment, create a swap file)"
-    txtsetupbaseselectdesktop="Select Desktop Enviroment"
-    txtsetupbaseinstalldesktop="Install desktop enviroment"
-    txtsetupbaseinstalldesktopdesc="(Install GNOME, KDE or Xfce)"
-    txtsetupbaseswapfile4g="Create a 4 GiB swap file"
-    txtsetupbaseswapfile4gdesc="(Optimal for systems with >=16 GiB of RAM)"
-    txtsetupbaseswapfile8g="Create a 8 GiB swap file"
-    txtsetupbaseswapfile8gdesc="(Optimal for systems with <16 GiB of RAM)"
-
-    txtextrassetup="Extras Setup"
-    txtextrasdesc="(Tools, drivers and applications for Debian)"
-    txtextrassetup_sysreadiness="System Readiness"
-    txtextrassetup_sysreadinessdesc="Run system readiness"
-    txtextrassetup_bsystools="Install basic system tools"
-    txtextrassetup_bsystools_gnome="Install Basic System Tools (GNOME)"
-    txtextrassetup_bsystools_kde="Install basic system tools (KDE)"
-    txtextrassetup_bsystools_xfce="Install basic system tools (Xfce)"
-    txtextrassetup_bsystools_xfce_plugins="Install basic plugins (Xfce)"
-    txtextrassetup_webbrowser="1.- Install web browser"
-    txtextrassetup_officesuite="2.- Install office suite"
-    txtextrassetup_gaming="3.- Install gaming software"
-    txtextrassetup_multimedia="4.- Install multimedia software"
-    txtextrassetup_amd_intel="5.- Install Mesa and Vulkan drivers"
-    txtextrassetup_amd_intel_dialog="You are about to install Mesa and Vulkan drivers for AMD/Intel. Are you sure? [Y/N]: "
-    txtextrassetup_material_debian="6.- Install Material Debian for GNOME"
-    txtextrassetup_material_debian_dialog="You are about to install Material Debian for GNOME. Are you sure? [Y/N]: "
-    
-    txtbasicvirtualization="Virtualization (Basic)"
-    txtbasicvirtualizationdesc="(Setup nested virtualization without CPU pinning)"
-    txtvirtualizationprompt="Before beginning with the setup, please write down who is the manufacturer of your CPU [intel/amd]:"
-
-    txtvirtualization="Virtualization (Full)"
-    txtvirtualizationdesc="(Setup nested virtualization and CPU pinning)"
-    txtvirtualizationprompt_warning="WARNING!!!\n\nCPU pinning only works with hexacore CPUs without HyperThreading/SMT currently. Abort now if your system is superior or inferior.\n\nDo you want to proceed? [yes/no]:"
-    txtvirtualizationprompt="Before beginning with the setup, please write down who is the manufacturer of your CPU [intel/amd]:"
-
-    txtfixes="Fixes"
-    txtfixesdesc="(Common fixes for Debian)"
-    txtfixes_fixwiredunmanaged="Fix Wired Unmanaged"
-    txtfixes_fixwiredunmanageddesc="(Restores Ethernet manual configuration)"
-    txtfixes_disablebluetoothertm="Disable Bluetooth's ERTM"
-    txtfixes_disablebluetoothertmdesc="(Makes Xbox controllers to work wirelessly)"
-    txtfixes_disablepulseaudioflatvolumes="Disable PulseAudio's flat volumes"
-    txtfixes_disablepulseaudioflatvolumesdesc="(Avoid physical damage to your hearing)"
-
-    txtreboottitle="Reboot System"
-    txtreboot="Reboot"
-    txtrebootdesc="(Shutdown the computer and then start it up again)"
-
-    txtmadeby="(by gfelipe099)"
-    txtmadeby_helpwanted="(WIP)"
-
-    txtpressanykey="PRESS ANY KEY TO CONTINUE..."
-
-}
-
-loadstrings_es(){
-    locale="es_ES.UTF-8"
-
-    txtyoursys="Tu sistema: "
-
-    txtdisclaimer="DESCARGO DE RESPONSABILIDAD"
-    txtdisclaimerdesc="Este script esta en etapa sid/inestable y quizá rompa cosas o el sistema entero.\n\nDicho esto, te aviso: NO USES este script en tu ordenador del día a día hasta que sea declarado estable como una roca.\n\nContinúa bajo tu propio riesgo."
-
-    txtaccept="Aceptar"
-    txtrefuse="Rechazar"
-    txtaboirt="Abortar"
-
-    txtnotsupportedyet="Versión no soportada"
-    txtnotsupportedyetdesc="Lo siento, la versión: ${distroInfo} aún no está soportada."
-
-    txtunsupportedsystem="Sistema no soportado"
-    txtunsupportedsystemdesc="Lo siento, este script no puede continuar. Tu sistema: ${distroSystem}\n\nLas distribuciones son voluminosas e inestables, y por ello no están soportadas y no lo estarán en el futuro.\n\nVLas versiones: estables antiguas, estables más antiguas; y las distribuciones: en pruebas e inestable de Debian, no están soportadas."
-
-    lang_us="Inglés (EE.UU.)"
-    lang_es="Español (España)"
-    langdesc="(Por gfelipe099)"
-
-    txtok="Aceptar"
-    txtexit="Salir"
-    txtreturn="Volver"
-    txtignore="Ignorar"
-
-    txtmainmenu="Menú principal"
-    txtlanguage="Cambiar idioma"
-    txtlanguagedesc="[Idioma por defecto: (Inglés (EE.UU.)]"
-
-    txtbasesetup="Configuración base"
-    txtbasedesc="(Instalar entorno de escritorio, crear archivo de intercambio)"
-    txtsetupbaseselectdesktop="Elegir entorno de escritorio"
-    txtsetupbaseinstalldesktop="Instalar entorno de escritorio"
-    txtsetupbaseinstalldesktopdesc="(Instalar GNOME, KDE o Xfce)"
-    txtsetupbaseswapfile4g="Crear archivo de intercambio de 4 GiB"
-    txtsetupbaseswapfile4gdesc="(Óptimo para sistemas con >=16 GiB de RAM)"
-    txtsetupbaseswapfile8g="Crear archivo de intercambio de 8 GiB"
-    txtsetupbaseswapfile8gdesc="(Óptimo para sistemas con <16 GiB de RAM)"
-
-    txtsysreadiness="Preparación del sistema"
-
-    txtextras="Extras"
-    txtextrasdesc="(Herramientas, controladores y aplicaciones para Debian)"
-    txtextrassetup="Configuración de extras"
-    txtextrassetup_sysreadiness="Ejecutar preparación del sistema"
-    txtextrassetup_bsystools="Instalar herramientas básicas del sistema"
-    txtextrassetup_bsystools_gnome="Instalar herramientas básicas del sistema (GNOME)"
-    txtextrassetup_bsystools_kde="Instalar herramientas básicas del sistema (KDE)"
-    txtextrassetup_bsystools_xfce="Instalar herramientas básicas del sistema (Xfce)"
-    txtextrassetup_bsystools_xfce_plugins="Instalar complementos básicos (Xfce)"
-    txtextrassetup_webbrowser="1.- Instalar navegador web"
-    txtextrassetup_officesuite="2.- Instalar suite ofimática"
-    txtextrassetup_gaming="3.- Instalar software para jugar"
-    txtextrassetup_multimedia="4.- Instalar software multimedia"
-    txtextrassetup_amd_intel="5.- Instalar los controladores de Mesa y Vulkan"
-    txtextrassetup_amd_intel_dialog="Estás a punto de instalar los controladores MESA y Vulkan para AMD/Intel. ¿Estás seguro? (reinicio requerido) [Y/N]: "
-    txtextrassetup_material_debian="6.- Instalar Material Debian para GNOME"
-    txtextrassetup_material_debian_dialog="Estás apunto de instalar Material Debian para GNOME. ¿Estás seguro? (reinicio requerido) [Y/N]: "
-    
-    txtbasicvirtualization="Virtualización (Básica)"
-    txtbasicvirtualizationdesc="(Configurar virtualización anidada sin afinidad de CPU)"
-    txtvirtualizationprompt="Antes de empezar con la configuración, por favor, escribe abajo quién es el fabricante de tu CPU [intel/amd]:"
-
-    txtvirtualization="Virtualización (Completa)"
-    txtvirtualizationdesc="(Configurar virtualización anidada con afinidad de CPU)"
-    txtvirtualizationprompt_warning="¡¡¡ AVISO !!! La afinidad de la CPU solo funciona con CPUs de 6 núcleos sin HyperThreading/SMT. Aborta ahora si tu sistema es superior o inferior.\n\n¿Quieres proceder? [yes/no]:"
-    txtvirtualizationprompt="Antes de empezar con la configuración, por favor, escribe abajo quién es el fabricante de tu CPU [intel/amd]:"
-    
-    txtfixes="Arreglos"
-    txtfixesdesc="(Arreglos comunes para Debian)"
-    txtfixes_fixwiredunmanaged="Arreglar Ethernet sin manejar"
-    txtfixes_fixwiredunmanageddesc="(Restaura la configuración manual de Ethernet)"
-    txtfixes_disablebluetoothertm="Deshabilitar ERTM del Bluetooth"
-    txtfixes_disablebluetoothertmdesc="(Hace que los mandos de Xbox funcionen inalámbricamente)"
-    txtfixes_disablepulseaudioflatvolumes="Deshabilitar 'flat-volumes' de PulseAudio"
-    txtfixes_disablepulseaudioflatvolumesdesc="(Evita daño físico a tus oídos)"
-
-
-    txtreboottitle="Reiniciar sistema"
-    txtreboot="Reiniciar"
-    txtrebootdesc="(Apaga el ordenador y lo inicia de nuevo)"
-
-    txtmadeby="(Por gfelipe099)"
-    txtmadeby_wip="(WIP)"
-
-    txtpressanykey="PRESIONA ALGUNA TECLA PARA CONTINUAR..."
-
-}
-    loadstrings_us
-    chooseLanguage
-# ------------------------------------------------- script end ------------------------------------------------- #
+if [ ${installBasicTools} = "no" ]; then
+    echo "${notInstallingBasicTools}" && echo ""
+elif [ ${installBasicTools} = "yes" ]; then
+        setupBasicTools
+    else
+        echo "${invalidConfig}"
+        exit 2
+fi
+if [ ${installWebBrowser} = "no" ]; then
+    echo "${notInstallingWebBrowser}" && echo ""
+elif [ ${installWebBrowser} = "yes" ]; then
+        setupWebBrowser
+    else
+        echo "${invalidConfig}"
+        exit 2
+fi
+if [ ${installOfficeSuite} = "no" ]; then
+    echo "${notInstallingOfficeSuite}" && echo ""
+elif [ ${installOfficeSuite} = "yes" ]; then
+        setupOfficeSuite
+    else
+        echo "${invalidConfig}"
+        exit 2
+fi
+if [ ${installGamingSoftware} = "no" ]; then
+    echo "${notInstallingGamingSoftware}" && echo ""
+elif [ ${installGamingSoftware} = "yes" ]; then
+        setupGamingSoftware
+    else
+        echo "${invalidConfig}"
+        exit 2
+fi
+if [ ${installMultimediaSoftware} = "no" ]; then
+    echo "${notInstallingMultimediaSoftware}" && echo ""
+elif [ ${installMultimediaSoftware} = "yes" ]; then
+        setupMultimediaSoftware
+    else
+        echo "${invalidConfig}"
+        exit 2
+fi
+if [ ${installDeveloperSoftware} = "no" ]; then
+    echo "${notInstallingDeveloperSoftware}" && echo ""
+elif [ ${installDeveloperSoftware} = "yes" ]; then
+        setupDeveloperSoftware
+    else
+        echo "${invalidConfig}"
+        exit 2
+fi
+if [ ${installLatestNvidiaDrivers} = "no" ]; then
+    echo "${notInstallingLatestNvidiaDrivers}" && echo ""
+elif [ ${installLatestNvidiaDrivers} = "yes" ]; then
+        setupLatestNvidiaDrivers
+    else
+        echo "${invalidConfig}"
+        exit 2
+fi
+if [ ${installOpenSourceDrivers} = "no" ]; then
+    echo "${notInstallingOpenSourceDrivers}" && echo ""
+elif [ ${installOpenSourceDrivers} = "yes" ]; then
+        setupOpenSourceDrivers
+    else
+        echo "${invalidConfig}"
+        exit 2
+fi
+if [ ${repository} = "nonfree" ]; then
+	if [ ${runSystemReadiness} = "no" ]; then
+		echo "${notRunningSystemReadiness}" && echo ""
+	elif [ ${runSystemReadiness} = "yes" ]; then
+		    systemReadiness
+		else
+		    echo "${invalidConfig}"
+		    exit 2
+	fi
+fi
+if [ ${createSwapFile} = "no" ]; then
+    echo "${notCreatingSwapFile}" && echo ""
+elif [ ${createSwapFile} = "yes" ]; then
+        setupSwapFile
+    else
+        echo "${invalidConfig}"
+        exit 2
+fi
+if [ ${applyDebianFixes} = "no" ]; then
+    echo "${notApplyingDebianFixes}" && echo ""
+elif [ ${applyDebianFixes} = "yes" ]; then
+        setupDebianFixes
+    else
+        echo "${invalidConfig}"
+        exit 2
+fi
+
+if [ ${configureVirtualization} = "no" ]; then
+    echo "${notSettingUpVirtualization}" && echo ""
+elif [ ${configureVirtualization} = "yes" ]; then
+        setupVirtualization
+    else
+        echo "${invalidConfig}"
+        exit 2
+fi
