@@ -1,0 +1,65 @@
+#
+# Debian Fast-Post Installer script
+# Created and developed by Liam Powell (gfelipe099)
+# pkgs.conf file
+# A packages configuration file for the script to use
+# based on user-based choice
+#
+
+# Desktop Environment
+# Available packages: gnome, kde, xfce
+desktopEnviroment=""
+
+# Basic System Tools
+# Default packages: selinux-basics selinux-policy-default gufw clamtk gcc make firmware-linux-free firmware-linux-{nonfree,free} curl linux-headers-$(uname -r) gdebi fonts-noto-color-emoji
+bstPkgs=""
+
+#
+# Basic Tools
+# Default packages:
+#   [For GNOME]: nautilus gnome-terminal gedit clamtk-gnome
+#   [For KDE Plasma]: plasma-nm dolphin konsole kate kwin-{x11,wayland}
+#   [For Xfce]: thunar mousepad ristretto xfce4-{screenshooter,terminal,goodies,themes}
+btPkgs=""
+
+#
+# Web Browser
+# Default packages: firefox-esr
+# Available packages (nonfree): google-chrome-stable vivaldi-stable brave-browser-stable
+wbPkgs=""
+
+#
+# Office Suite
+# Default packages: libreoffice
+
+#
+# Gaming Software
+# Available packages (nonfree): steam lutris pcsx2 winehq-staging libvulkan1 libvulkan1:i386 libgl1-mesa-dri:i386 mesa-vulkan-drivers:i386 mesa-vulkan-drivers:i386 libegl-mesa0 libgbm1 libgl1-mesa-dri {libglapi,libglu1}-mesa libglx-mesa0 libosmesa6 mesa-{utils,va-drivers,vdpau-drivers,vulkan-drivers} xserver-xorg-video-nouveau
+gsPkgs=""
+
+#
+# Multimedia Software
+# Default packages: gimp
+# Default packages (nonfree): spotify client discord
+msPkgs=""
+
+#
+# Developer Software
+# Default packages: mesa-opencl-icd
+# Available packages (nonfree): code
+dsPkgs=""
+
+#
+# NVIDIA latest drivers (backports)
+# Available packages (nonfree): nvidia-driver nvidia-settings nvidia-opencl-icd
+lndPkgs=""
+
+#
+# Open Source drivers
+# Default packages: libgl1-mesa-dri:i386 mesa-vulkan-drivers:i386 libglu1 libglu1:i386 libegl-mesa0 libgbm1 libgl1-mesa-dri {libglapi,libglu1}-mesa libglx-mesa0 libosmesa6 mesa-{utils,va-drivers,vdpau-drivers,vulkan-drivers} xserver-xorg-video-nouveau
+osdPkgs=""
+
+#
+# Virtualization Software
+# Default packages: qemu-kvm ovmf bridge-utils
+virtPkgs=""
