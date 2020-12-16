@@ -5,13 +5,15 @@
 # Created and developed by Liam Powell (gfelipe099)
 # debian-fpi file
 # For Debian GNU/Linux 10 (buster) amd64
-# 
+#
 
 # set config dir
 configDir="/root/.config/debian-fpi/"
+
 # set script parameters
 language="${1}"
 repository="${2}"
+
 if [ -z ${language} ]; then
     echo "Missing required argument: [language] "
     echo "You must specify which language and repository to use." && echo "" && echo ""
@@ -46,25 +48,28 @@ elif [ -z ${repository} ]; then
     echo ""
     exit 2
 fi
+
 # set language variables
 if [ ${language} = "en" ]; then
+    pleaseWait="Please wait..."
     mustExecAsRoot="This script must be executed as root"
     PkgManagerNotFound="APT Package Manager was not found in this system, execution aborted."
     NotUsingDebian="You must be using Debian GNU/Linux 10 (buster) to execute this script."
     welcomeToDebianFpi="Welcome to the Debian Fast-Post Installer tool or Debian-FPI!"
     createdBy="Created by Liam Powell (gfelipe099)"
     kernelVersion="Kernel version in use:"
-    errorConfigFileNotFound="ERROR: Configuration file "${configDir}"main.conf not found. Creating a new one..."
+    configFileNotFound="ERROR: Configuration file "${configDir}"main.conf not found. Creating a new one..."
     configFileFound="Your configuration file was found and loaded successfully!"
-	pkgsConfigFileFound="Your packages configuration file was found and loaded successfully, will be used instead of the default packages."
-	pkgsNotConfigFileFound="WARNING: Packages configuration file "${configDir}"pkgs.conf not found. Default packages will be used instead."
-    pressAnyKeyToBeginSetup="--> Press ENTER to start..."
+    pkgsConfigFileFound="Your packages configuration file was found and loaded successfully, will be used instead of the default packages."
+    pkgsConfigFileNotFound="WARNING: Packages configuration file "${configDir}"pkgs.conf not found. Default packages will be used instead."
+    startPrompt="--> Do you want to start the script?: (Default: no): "
+    useDesktopEnviroment="Will you use a desktop enviroment? (Default: no): "
     desktopEnv="--> Desktop Enviroment"
     desktopEnvPrompt="Which desktop enviroment do you want to use? (Default: gnome): "
     unknownDesktopEnv="Sorry the desktop enviroment you chose is not available or it is not known yet by the script, please change your configuration file parameters and try again."
     installingDesktopEnv="Installing ${desktopEnviroment} minimal desktop enviroment..."
     installingBSysTools="Installing basic system tools..."
-	installingBTools="Installing basic tools..."
+    installingBTools="Installing basic tools..."
     installingWebBrowser="Installing web browser..."
     installingOfficeSuite="Installing office suite..."
     installingGamingSoftware="Installing gaming software..."
@@ -88,7 +93,7 @@ if [ ${language} = "en" ]; then
     applicationsSettings_btools="Do you want to install basic tools? (Default: yes): "
     applicationsSettings_webbrowser="Do you want to install a web browser? (Default: yes): "
     applicationsSettings_officesuite="Do you want to install an office suite? (Default: yes): "
-    applicationsSettings_gaming="Do you want to instasll gaming software? (Default: yes): "
+    applicationsSettings_gaming="Do you want to install gaming software? (Default: yes): "
     applicationsSettings_multimedia="Do you want to install multimedia software? (Default: yes): "
     applicationsSettings_developer="Do you want to install developer software? (Default: no): "
     applicationsSettings_nvidia_backports="If you use an NVIDIA graphics card, do you want to install the latest drivers from backports? (Default: no): "
@@ -101,6 +106,7 @@ if [ ${language} = "en" ]; then
     systemSettings_createSwapFile_fileSize="How much space do you want to allocate for the swap file? (Default: 4G)"
     systemSettings_applyDebianFixes="Do you want to apply debian-fpi's fixes to your system? (Default: yes): "
     systemSettings_applyDebianFixes_pleaseWait="Applying fixes to your system..."
+    systemSettings_configureVirtualization="Do you want to configure the system for virtualzation? (Default: no): "
     notInstallingDesktopEnviroment="Will not install a desktop enviroment per user request"
     notInstallingBasicSystemTools="Will not install basic system tools per user request"
     notInstallingBasicTools="Will not install basic tools per user request"
@@ -116,23 +122,25 @@ if [ ${language} = "en" ]; then
     notApplyingDebianFixes="Will not apply fixes per user request"
     notSettingUpVirtualization="Not setting up virtualization per user request"
 elif [ ${language} = "es" ]; then
+    pleaseWait="Por favor, espera..."
     mustExecAsRoot="Este script debe ser ejecutado como root"
     PkgManagerNotFound="El administrador de paquetes APT no fue encontrado en este sistema, ejecución abortada."
     NotUsingDebian="Debes estar usando Debian GNU/Linux 10 (buster) para ejecutar este script."
     welcomeToDebianFpi="¡Bienvenido a la herramienta rápida post-instaladora de Debian o Debian-FPI!"
     createdBy="Creado por Liam Powell (gfelipe099)"
     kernelVersion="Versión del núcleo en uso:"
-    errorConfigFileNotFound="ERROR: El archivo de configuración "${configDir}"main.conf no se ha encontrado. Creando uno nuevo..."
+    configFileNotFound="ERROR: El archivo de configuración "${configDir}"main.conf no se ha encontrado. Creando uno nuevo..."
     configFileFound="¡Tu archivo de configuración fue encontrado y cargado correctamente!"
-	pkgsConfigFileFound="¡Tu archivo de configuración de los paquetes fue encontrado y cargado correctamente!"
-	pkgsNotConfigFileFound="AVISO: El archivo de configuración de los paquetes "${configDir}"pkgs.conf no se ha encontrado. Se usarán los paquetes por defecto."
-    pressAnyKeyToBeginSetup="--> Presiona ENTER para empezar..."
+    pkgsConfigFileFound="¡Tu archivo de configuración de los paquetes fue encontrado y cargado correctamente!"
+    pkgsConfigFileNotFound="AVISO: El archivo de configuración de los paquetes "${configDir}"pkgs.conf no se ha encontrado. Se usarán los paquetes por defecto."
+    startPrompt="--> Presiona cualquier tecla para empezar... (Por defecto: no): "
+    useDesktopEnviroment="¿Usarás in entorno de escritorio? (Por defecto: no): "
     desktopEnv="--> Entorno de escritorio"
     desktopEnvPrompt="¿Qué entorno de escritorio quieres usar? (Por defecto: gnome): "
     unknownDesktopEnv="Lo siento, el entorno de escritorio que has elegido no está disponible o no es conocido aún por el script, por favor, cambia los parámetros de tu archivo de configuración e inténtalo de nuevo."
     installingDesktopEnv="Instalando el entorno de escritorio mínimo de ${desktopEnviroment}..."
     installingBSysTools="Instalando herramientas básicas del sistema..."
-	installingBTools="Instalando herramientas básicas..."
+    installingBTools="Instalando herramientas básicas..."
     installingWebBrowser="Instalando navegador web..."
     installingOfficeSuite="Instalando suite ofimática..."
     installingGamingSoftware="Instalando programas gaming..."
@@ -168,6 +176,7 @@ elif [ ${language} = "es" ]; then
     systemSettings_createSwapFile="¿Quieres crear un archivo de intercambio? (Por defecto: no): "
     systemSettings_applyDebianFixes="¿Quieres aplicar los arreglos de debian-fpi a tu sistema? (Default: yes): "
     systemSettings_applyDebianFixes_pleaseWait="Aplicando arreglos a tu sistema..."
+    systemSettings_configureVirtualization="¿Quieres configurar el sistema para virtualización? (Por defecto: no): "
     notInstallingDesktopEnviroment="No se instalará un entorno de escritorio por petición del usuario"
     notInstallingBasicSystemTools="No se instalarán las herramientas básicas del sistema por petición del usuario"
     notInstallingBasicTools="No se instalarán las herramientas básicas por petición del usuario"
@@ -194,6 +203,7 @@ if [ "$(whoami)" != "root" ]; then
             mkdir -p ${configDir}
         fi
 fi
+
 # verify Debian GNU/Linux is running
 if [ ! -f /usr/bin/apt ]; then
     echo "${PkgManagerNotFound}"
@@ -209,7 +219,9 @@ fi
 
 welcome() {
     clear
+    echo "${pleaseWait}"
     apt-get install -yy figlet >/dev/null
+    clear
     figlet -c "Debian"
     figlet -c "FPI"
     apt-get purge -yy figlet --autoremove >/dev/null
@@ -220,17 +232,36 @@ welcome() {
 
 root() {
     if [ ! -f ${configDir}pkgs.conf ] >/dev/null; then
-        echo "" && echo "${pkgsNotConfigFileFound}"
+        echo "" && echo "${pkgsConfigFileNotFound}"
+        else
+            if [ -f ${configDir}pkgs.conf ]; then
+                echo "" && echo "${pkgsConfigFileFound}" && echo ""
+                read -p "${startPrompt}" input
+                    if [ -z ${input} ]; then
+                        exit
+                    elif [ ${input} = no ]; then
+                        exit
+                    fi
+                echo "" && echo ""
+                . ${configDir}pkgs.conf
+            fi
     fi
     if [ ! -f ${configDir}main.conf ] >/dev/null; then
-        echo "" && echo "${errorConfigFileNotFound}"
+        echo "" && echo "${configFileNotFound}" && echo "" && echo ""
 
-        echo "" && echo "" && echo "${desktopEnv}"
-        read -p "${desktopEnvPrompt}" desktopEnviroment
-        if [ -z ${desktopEnviroment} ]; then
-            desktopEnviroment=gnome
+        read -p "${useDesktopEnviroment}" installDesktopEnviroment
+        if [ -z ${installDesktopEnviroment} ]; then
+            installDesktopEnviroment=no
+        elif [ ${installDesktopEnviroment} = "yes" ]; then
+            echo "" && echo "" && echo "${desktopEnv}"
+            read -p "${desktopEnvPrompt}" desktopEnviroment
+            if [ -z ${desktopEnviroment} ]; then
+                desktopEnviroment=gnome
+            fi
+        elif [ ${installDesktopEnviroment} = "no" ]; then
+            installDesktopEnviroment=no
         fi
-        echo "" && echo "" && echo "-${applicationsSettings}"
+        echo "" && echo "" && echo "${applicationsSettings}"
         read -p "${applicationsSettings_bsystools}" installBasicSystemTools
         if [ -z ${installBasicSystemTools} ]; then
             installBasicSystemTools=yes
@@ -268,12 +299,12 @@ root() {
             installOpenSourceDrivers=yes
         fi
         echo "" && echo "" && echo "${systemSettings}"
-		if [ ${repository} = "nonfree" ]; then
-		    read -p "${systemSettings_systemReadiness}" runSystemReadiness
-		    if [ -z ${runSystemReadiness} ]; then
-		        runSystemReadiness=no
-		    fi
-		fi
+        if [ ${repository} = "nonfree" ]; then
+            read -p "${systemSettings_systemReadiness}" runSystemReadiness
+            if [ -z ${runSystemReadiness} ]; then
+                runSystemReadiness=no
+            fi
+        fi
         read -p "${systemSettings_createSwapFile}" createSwapFile
         if [ -z ${createSwapFile} ]; then
             createSwapFile=no
@@ -282,14 +313,26 @@ root() {
         if [ -z ${applyDebianFixes} ]; then
             applyDebianFixes=yes
         fi
+        read -p "${systemSettings_configureVirtualization}" configureVirtualization
+        if [ -z ${configureVirtualization} ]; then
+            configureVirtualization=no
+        fi
         printf "# Desktop Enviroment\ndesktopEnviroment="${desktopEnviroment}"\n\n# Applications Settings\ninstallBasicSystemTools="${installBasicSystemTools}"\ninstallBasicTools="${installBasicTools}"\ninstallWebBrowser="${installWebBrowser}"\ninstallOfficeSuite="${installOfficeSuite}"\ninstallGamingSoftware="${installGamingSoftware}"\ninstallMultimediaSoftware="${installMultimediaSoftware}"\ninstallDeveloperSoftware="${installDeveloperSoftware}"\ninstallLatestNvidiaDrivers="${installLatestNvidiaDrivers}"\ninstallOpenSourceDrivers="${installOpenSourceDrivers}"\n\n# System Settings\nrunSystemReadiness="${runSystemReadiness}"\ncreateSwapFile="${createSwapFile}"\napplyDebianFixes="${applyDebianFixes}"\n" > ${configDir}main.conf
+        echo "" && read -p "${startPrompt}" input
+            if [ -z ${input} ]; then
+                exit
+            elif [ ${input} = no ]; then
+                exit
+            fi && echo "" && echo ""
         else
             . ${configDir}main.conf
-            echo "" && echo "${configFileFound}" && echo "" && echo "" && echo ""
-	fi
-    if [ -f ${configDir}pkgs.conf ]; then
-        echo "" && echo "${pkgsConfigFileFound}" && echo "" && echo "${pressAnyKeyToBeginSetup}" && read "" && echo "" && echo ""
-        . ${configDir}pkgs.conf
+            echo "" && echo "${configFileFound}" && echo ""
+        read -p "${startPrompt}" input
+            if [ -z ${input} ]; then
+                exit
+            elif [ ${input} = no ]; then
+                exit
+            fi
     fi
 }
 
@@ -298,9 +341,9 @@ setupDesktopEnviroment() {
     if [ ${ desktopEnviroment } = "gnome" ]; then
         apt-get install -yy gdm3* >/dev/null
     elif [ ${desktopEnviroment} = "kde" ]; then
-        apt-get install -yy sddm* && apt-get purge -yy discover plasma-discover kinfocenter xterm --autoremove >/dev/null
+        apt-get install -yy sddm* >/dev/null && apt-get purge -yy discover plasma-discover kinfocenter xterm --autoremove >/dev/null
     elif [ ${desktopEnviroment} = "xfce" ]; then
-        apt install -yy xfwm4 xfdesktop4 xfce4-panel xfce4-panel xfce4-settings xfce4-power-manager xfce4-session xfconf xfce4-notifyd >/dev/null
+        apt-get install -yy xfce4 >/dev/null
         else
             echo "${unknownDesktopEnv}"
             exit 1
@@ -308,21 +351,23 @@ setupDesktopEnviroment() {
 }
 
 setupBasicSystemTools() {
-	if [ ! -f ${configDir}pkgs.conf ]; then
-		if [ ${repository} = "nonfree" ]; then
-			bstPkgs="selinux-basics selinux-policy-default gufw clamtk gcc make firmware-linux-{nonfree,free} curl linux-headers-$(uname -r) gdebi fonts-noto-color-emoji"
-		elif [ ${repository} = "free" ]; then
-		    bstPkgs="selinux-basics selinux-policy-default gufw clamtk gcc make perl firmware-linux-free curl linux-headers-$(uname -r) gdebi fonts-noto-color-emoji"
-		fi
-		else
-			. ${configDir}pkgs.conf
-	fi
+    if [ ! -f ${configDir}pkgs.conf ]; then
+        if [ ${repository} = "nonfree" ]; then
+            bstPkgs="selinux-basics selinux-policy-{default,mls} auditd gufw clamtk gcc make firmware-linux-{nonfree,free} curl linux-headers-$(uname -r) gdebi fonts-noto-color-emoji"
+        elif [ ${repository} = "free" ]; then
+            bstPkgs="selinux-basics selinux-policy-default auditd fail2ban gufw clamtk gcc make perl firmware-linux-free curl linux-headers-$(uname -r) gdebi fonts-noto-color-emoji"
+        fi
+        else
+            . ${configDir}pkgs.conf
+    fi
     echo "${installingBSysTools}"
     apt-get install -yy ${bstPkgs} >/dev/null
     echo "${configuringBSysTools}"
     cp /etc/selinux/config /etc/selinux/config.backup
-    sed -i "s/SELINUX=permissive/SELINUX=enforcing/g" /etc/selinux/config && sed -i "s/SELINUXTYPE=default/SELINUXTYPE=mls/g" /etc/selinux/config
+    sed -i "s/SELINUXTYPE=default/SELINUXTYPE=mls/g" /etc/selinux/config
+    selinux-activate
     ufw enable >/dev/null
+    systemctl enable --now fail2ban >/dev/null
 }
 
 setupBasicTools() {
@@ -334,13 +379,13 @@ setupBasicTools() {
         fi
     elif [ ${desktopEnviroment} = "kde" ]; then
         if [ ! -f ${configDir}pkgs.conf ]; then
-        btPkgs="plasma-nm dolphin konsole kate kwin-{x11,wayland}"
+            btPkgs="plasma-nm dolphin konsole kate kwin-{x11,wayland}"
             else
                 . ${configDir}pkgs.conf
         fi
     elif [ ${desktopEnviroment} = "xfce" ]; then
         if [ ! -f ${configDir}pkgs.conf ]; then
-        btPkgs="thunar mousepad ristretto xfce4-{screenshooter,terminal,goodies,themes}"
+            btPkgs="thunar mousepad ristretto xfce4-{screenshooter,terminal,goodies,themes}"
             else
                 . ${configDir}pkgs.conf
         fi
@@ -369,11 +414,11 @@ setupBasicTools() {
 }
 
 setupWebBrowser() {
-	if [ ! -f ${configDir}pkgs.conf ]; then
-	    wbPkgs="firefox-esr"
-		else
-			. ${configDir}pkgs.conf
-	fi
+    if [ ! -f ${configDir}pkgs.conf ]; then
+        wbPkgs="firefox-esr"
+        else
+            . ${configDir}pkgs.conf
+    fi
     while true; do
         read -p "${warningPrompt}" wbInstallationWarningAccepted
         if [ -z ${osInstallationWarningAccepted} ]; then
@@ -398,12 +443,12 @@ setupWebBrowser() {
             wget -qO- https://repo.vivaldi.com/archive/linux_signing_key.pub | apt-key add -
             add-apt-repository 'deb https://repo.vivaldi.com/archive/deb/ stable main'
         elif [ ${wbPkgs} = *"brave-browser-stable"* ]; then
-			apt-get purge --autoremove brave-{beta,nightly} >/dev/null
+            apt-get purge --autoremove brave-{beta,nightly} >/dev/null
             apt-get install -yy apt-transport-https curl >/dev/null
             curl -s https://brave-browser-apt-release.s3.brave.com/brave-core.asc | apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add - >/dev/null
             echo "deb [arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main" | tee /etc/apt/sources.list.d/brave-browser-release.list >/dev/null
         elif [ ${wbPkgs} = *"brave-browser-beta"* ]; then
-			apt-get purge --autoremove brave-{stable,nightly} >/dev/null
+            apt-get purge --autoremove brave-{stable,nightly} >/dev/null
             apt-get install -yy apt-transport-https curl >/dev/null
             curl -s https://brave-browser-apt-beta.s3.brave.com/brave-core.asc | apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-beta.gpg add - >/dev/null
             echo "deb [arch=amd64] https://brave-browser-apt-beta.s3.brave.com/ stable main" | tee /etc/apt/sources.list.d/brave-browser-beta.list >/dev/null
@@ -420,11 +465,11 @@ setupWebBrowser() {
 }
 
 setupOfficeSuite() {
-	if [ ! -f ${configDir}pkgs.conf ]; then
-	    osPkg="libreoffice"
-		else
-			. ${configDir}pkgs.conf
-	fi
+    if [ ! -f ${configDir}pkgs.conf ]; then
+        osPkg="libreoffice"
+        else
+            . ${configDir}pkgs.conf
+    fi
     echo "${officeSuiteSoftwareWarning}"
     while true; do
         read -p "${warningPrompt}" osInstallationWarningAccepted
@@ -450,11 +495,11 @@ setupOfficeSuite() {
 }
 
 setupGamingSoftware() {
-	if [ ! -f ${configDir}pkgs.conf ]; then
-	    gsPkgs="steam lutris pcsx2 winehq-staging libvulkan1 libvulkan1:i386 libgl1-mesa-dri:i386 mesa-vulkan-drivers:i386 mesa-vulkan-drivers:i386 libegl-mesa0 libgbm1 libgl1-mesa-dri {libglapi,libglu1}-mesa libglx-mesa0 libosmesa6 mesa-{utils,va-drivers,vdpau-drivers,vulkan-drivers} xserver-xorg-video-nouveau"
-		else
-			. ${configDir}pkgs.conf
-	fi
+    if [ ! -f ${configDir}pkgs.conf ]; then
+        gsPkgs="steam lutris pcsx2 winehq-staging libvulkan1 libvulkan1:i386 libgl1-mesa-dri:i386 mesa-vulkan-drivers:i386 mesa-vulkan-drivers:i386 libegl-mesa0 libgbm1 libgl1-mesa-dri {libglapi,libglu1}-mesa libglx-mesa0 libosmesa6 mesa-{utils,va-drivers,vdpau-drivers,vulkan-drivers} xserver-xorg-video-nouveau"
+        else
+            . ${configDir}pkgs.conf
+    fi
     echo "${gamingSoftwareWarning}"
     while true; do
         read -p "${warningPrompt}" gsInstallationWarningAccepted
@@ -503,11 +548,11 @@ setupGamingSoftware() {
 }
 
 setupMultimediaSoftware() {
-	if [ ! -f ${configDir}pkgs.conf ]; then
-	    msPkgs="gimp spotify-client discord"
-		else
-			. ${configDir}pkgs.conf
-	fi
+    if [ ! -f ${configDir}pkgs.conf ]; then
+        msPkgs="gimp spotify-client discord"
+        else
+            . ${configDir}pkgs.conf
+    fi
     echo "${multimediaSoftwareWarning}"
     while true; do
     read -p "${warningPrompt}" msInstallationWarningAccepted
@@ -542,11 +587,11 @@ setupMultimediaSoftware() {
 }
 
 setupDeveloperSoftware() {
-	if [ ! -f ${configDir}pkgs.conf ]; then
+    if [ ! -f ${configDir}pkgs.conf ]; then
         dsPkgs="code mesa-opencl-icd"
-		else
-			. ${configDir}pkgs.conf
-	fi
+        else
+            . ${configDir}pkgs.conf
+    fi
     echo "${developerSoftwareWarning}"
     while true; do
     read -p "${warningPrompt}" dsInstallationWarningAccepted
@@ -566,9 +611,9 @@ setupDeveloperSoftware() {
     if [ ${dsInstallationWarningAccepted} = "yes" ]; then
         echo "" && echo "${installingDeveloperSoftware}" && echo ""
         if [${dsPkgs} = "code" ]; then
-			apt install -y wget >/dev/null
+            apt install -y wget >/dev/null
             wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg >/dev/null
-			apt purge wget --autoremove -yy
+            apt purge wget --autoremove -yy
             install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
             sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
         fi
@@ -579,11 +624,11 @@ setupDeveloperSoftware() {
 }
 
 setupLatestNvidiaDrivers() {
-	if [ ! -f ${configDir}pkgs.conf ]; then
+    if [ ! -f ${configDir}pkgs.conf ]; then
         lndPkgs="nvidia-driver nvidia-settings nvidia-opencl-icd"
-		else
-			. ${configDir}pkgs.conf
-	fi
+        else
+            . ${configDir}pkgs.conf
+    fi
     echo "${nvidiaLatestDriversWarning}"
     while true; do
     read -p "${warningPrompt}" lndInstallationWarningAccepted
@@ -610,20 +655,25 @@ setupLatestNvidiaDrivers() {
 }
 
 setupOpenSourceDrivers() {
-    osdPkgs="libgl1-mesa-dri:i386 mesa-vulkan-drivers:i386 libglu1 libglu1:i386 libegl-mesa0 libgbm1 libgl1-mesa-dri {libglapi,libglu1}-mesa libglx-mesa0 libosmesa6 mesa-{utils,va-drivers,vdpau-drivers,vulkan-drivers} xserver-xorg-video-nouveau"
+    if [ ! -f ${configDir}pkgs.conf ]; then
+        osdPkgs="libgl1-mesa-dri:i386 mesa-vulkan-drivers:i386 libglu1 libglu1:i386 libegl-mesa0 libgbm1 libgl1-mesa-dri {libglapi,libglu1}-mesa libglx-mesa0 libosmesa6 mesa-{utils,va-drivers,vdpau-drivers,vulkan-drivers} xserver-xorg-video-nouveau"
+        else
+            . ${configDir}pkgs.conf
+    fi
+  
     echo "${openSourceDriversWarning}"
     read -p "${warningPrompt}" osdInstallationWarningAccepted
-        if [ -z ${lndInstallationWarningAccepted} ]; then
-            lndInstallationWarningAccepted=no
-        elif ${lndInstallationWarningAccepted} = "N" ]; then
-            lndInstallationWarningAccepted=no
-        elif ${lndInstallationWarningAccepted} = "n" ]; then
-            lndInstallationWarningAccepted=no
-        elif ${lndInstallationWarningAccepted} = "Y" ]; then
-            lndInstallationWarningAccepted=yes
-        elif ${lndInstallationWarningAccepted} = "y" ]; then
-            lndInstallationWarningAccepted=yes
-        fi
+    if [ -z ${lndInstallationWarningAccepted} ]; then
+        lndInstallationWarningAccepted=no
+    elif ${lndInstallationWarningAccepted} = "N" ]; then
+        lndInstallationWarningAccepted=no
+    elif ${lndInstallationWarningAccepted} = "n" ]; then
+        lndInstallationWarningAccepted=no
+    elif ${lndInstallationWarningAccepted} = "Y" ]; then
+        lndInstallationWarningAccepted=yes
+    elif ${lndInstallationWarningAccepted} = "y" ]; then
+        lndInstallationWarningAccepted=yes
+    fi
         break
     if [ ${osdInstallationWarningAccepted} = "yes" ]; then
         echo "" && echo "${installingOpenSourceDrivers}" && echo ""
@@ -634,17 +684,16 @@ setupOpenSourceDrivers() {
 }
 
 systemReadiness() {
-        echo "${systemSettings_systemReadiness_checkingForUpdates}"
-        apt-get update -yy &>/dev/null
-        apt-get upgrade -yy &>/dev/null
-
-        echo "${systemSettings_systemReadiness_generatingAptSourcesList}"
-        cp /etc/apt/sources.list /etc/apt/sources.list.backup
-        if [ ${repository} = "free" ]; then
-            printf '#\n# DEBIAN REPOSITORIES\n#\ndeb http://deb.debian.org/debian/ buster main\ndeb-src http://deb.debian.org/debian/ buster main\ndeb http://security.debian.org/debian-security buster/updates main\ndeb-src http://security.debian.org/debian-security buster/updates main\ndeb http://deb.debian.org/debian/ buster-updates main\ndeb-src http://deb.debian.org/debian/ buster-updates main\ndeb http://deb.debian.org/debian/ buster-backports main\ndeb-src http://deb.debian.org/debian/ buster-backports main' > /etc/apt/sources.list
-        elif [ ${repository} = "nonfree" ]; then
-            printf '#\n# DEBIAN REPOSITORIES\n#\ndeb http://deb.debian.org/debian/ buster main contrib nonfree\ndeb-src http://deb.debian.org/debian/ buster main contrib nonfree\ndeb http://security.debian.org/debian-security buster/updates main contrib nonfree\ndeb-src http://security.debian.org/debian-security buster/updates main contrib nonfree\ndeb http://deb.debian.org/debian/ buster-updates main contrib nonfree\ndeb-src http://deb.debian.org/debian/ buster-updates main contrib nonfree\ndeb http://deb.debian.org/debian/ buster-backports main contrib nonfree\ndeb-src http://deb.debian.org/debian/ buster-backports main contrib nonfree' > /etc/apt/sources.list
-        fi
+    echo "${systemSettings_systemReadiness_checkingForUpdates}"
+    apt-get update -yy &>/dev/null
+    apt-get upgrade -yy &>/dev/null
+    echo "${systemSettings_systemReadiness_generatingAptSourcesList}"
+    cp /etc/apt/sources.list /etc/apt/sources.list.backup
+    if [ ${repository} = "free" ]; then
+        printf '#\n# DEBIAN REPOSITORIES\n#\ndeb http://deb.debian.org/debian/ buster main\ndeb-src http://deb.debian.org/debian/ buster main\ndeb http://security.debian.org/debian-security buster/updates main\ndeb-src http://security.debian.org/debian-security buster/updates main\ndeb http://deb.debian.org/debian/ buster-updates main\ndeb-src http://deb.debian.org/debian/ buster-updates main\ndeb http://deb.debian.org/debian/ buster-backports main\ndeb-src http://deb.debian.org/debian/ buster-backports main' > /etc/apt/sources.list
+    elif [ ${repository} = "nonfree" ]; then
+        printf '#\n# DEBIAN REPOSITORIES\n#\ndeb http://deb.debian.org/debian/ buster main contrib nonfree\ndeb-src http://deb.debian.org/debian/ buster main contrib nonfree\ndeb http://security.debian.org/debian-security buster/updates main contrib nonfree\ndeb-src http://security.debian.org/debian-security buster/updates main contrib nonfree\ndeb http://deb.debian.org/debian/ buster-updates main contrib nonfree\ndeb-src http://deb.debian.org/debian/ buster-updates main contrib nonfree\ndeb http://deb.debian.org/debian/ buster-backports main contrib nonfree\ndeb-src http://deb.debian.org/debian/ buster-backports main contrib nonfree' > /etc/apt/sources.list
+    fi
 }
 
 setupSwapFile() {
@@ -659,27 +708,30 @@ setupSwapFile() {
 setupDebianFixes() {
     echo "${systemSettings_applyDebianFixes_pleaseWait}"
     sed -e 11's/.*/# &//' /etc/network/interfaces && sed -e 12's/.*/# &//' /etc/network/interfaces
-    printf '[main]\nplugins=keyfile,ifupdown\n\n[ifupdown]\nmanaged=true\n' > /etc/NetworkManager/NetworkManager.conf
     systemctl restart NetworkManager
     printf 'options bluetooth disable_ertm=1\n' > /etc/modprobe.d/bluetooth.conf
     sed -i 's/; flat-volumes = yes/flat-volumes = no/g' /etc/pulse/daemon.conf
+    pulseaudio --kill && pulseaudio --start
     printf 'snd_hda_intel enable_msi=1\n' /etc/modprobe.d/snd_hda_intel.conf
 }
 
 setupVirtualization() {
-	dependencies="qemu-kvm ovmf bridge-utils"
-	sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_iommu=on iommu=pt isolcpus= nohz_full= rcu_nocbs= default_hugepagesz=1G hugepagesz=1G hugepages=16 rd.driver.pre=vfio-pci video=efifb:off"/g' /etc/default/grub
-	printf 'options kvm_intel nested=1\noptions kvm-intel enable_shadow_vmcs=1\noptions kvm-intel enable_apicv=1\noptions kvm-intel ept=1\n' > /etc/modprobe.d/kvm.conf
-	printf 'blacklist nouveau\noptions nouveau modeset=0\n' > /etc/modprobe.d/nouveau.conf
-    printf 'options vfio-pci ids=\n' > /etc/modprobe.d/vfio.conf
+     curl -sL https://git.io/JUbV9 > grub-vfiocfg && sh grub-vfiocfg
 }
 
 # Consider user choices from the main.conf file, then initialize script functions in this order
 welcome
 root
-setupDesktopEnviroment
+if [ ${installDesktopEnviroment} = "no" ]; then
+    echo "${notInstallingDesktopEnviroment}"
+elif [ ${installDesktopEnviroment} = "yes" ]; then
+        setupDesktopEnviroment
+    else
+        echo "${invalidConfig}"
+        exit 2
+fi
 if [ ${installBasicSystemTools} = "no" ]; then
-    echo "${notInstallingBasicSystemTools}" && echo ""
+    echo "${notInstallingBasicSystemTools}"
 elif [ ${installBasicSystemTools} = "yes" ]; then
         setupBasicSystemTools
     else
@@ -687,7 +739,7 @@ elif [ ${installBasicSystemTools} = "yes" ]; then
         exit 2
 fi
 if [ ${installBasicTools} = "no" ]; then
-    echo "${notInstallingBasicTools}" && echo ""
+    echo "${notInstallingBasicTools}"
 elif [ ${installBasicTools} = "yes" ]; then
         setupBasicTools
     else
@@ -695,7 +747,7 @@ elif [ ${installBasicTools} = "yes" ]; then
         exit 2
 fi
 if [ ${installWebBrowser} = "no" ]; then
-    echo "${notInstallingWebBrowser}" && echo ""
+    echo "${notInstallingWebBrowser}"
 elif [ ${installWebBrowser} = "yes" ]; then
         setupWebBrowser
     else
@@ -703,7 +755,7 @@ elif [ ${installWebBrowser} = "yes" ]; then
         exit 2
 fi
 if [ ${installOfficeSuite} = "no" ]; then
-    echo "${notInstallingOfficeSuite}" && echo ""
+    echo "${notInstallingOfficeSuite}"
 elif [ ${installOfficeSuite} = "yes" ]; then
         setupOfficeSuite
     else
@@ -711,7 +763,7 @@ elif [ ${installOfficeSuite} = "yes" ]; then
         exit 2
 fi
 if [ ${installGamingSoftware} = "no" ]; then
-    echo "${notInstallingGamingSoftware}" && echo ""
+    echo "${notInstallingGamingSoftware}"
 elif [ ${installGamingSoftware} = "yes" ]; then
         setupGamingSoftware
     else
@@ -719,7 +771,7 @@ elif [ ${installGamingSoftware} = "yes" ]; then
         exit 2
 fi
 if [ ${installMultimediaSoftware} = "no" ]; then
-    echo "${notInstallingMultimediaSoftware}" && echo ""
+    echo "${notInstallingMultimediaSoftware}"
 elif [ ${installMultimediaSoftware} = "yes" ]; then
         setupMultimediaSoftware
     else
@@ -727,7 +779,7 @@ elif [ ${installMultimediaSoftware} = "yes" ]; then
         exit 2
 fi
 if [ ${installDeveloperSoftware} = "no" ]; then
-    echo "${notInstallingDeveloperSoftware}" && echo ""
+    echo "${notInstallingDeveloperSoftware}"
 elif [ ${installDeveloperSoftware} = "yes" ]; then
         setupDeveloperSoftware
     else
@@ -735,7 +787,7 @@ elif [ ${installDeveloperSoftware} = "yes" ]; then
         exit 2
 fi
 if [ ${installLatestNvidiaDrivers} = "no" ]; then
-    echo "${notInstallingLatestNvidiaDrivers}" && echo ""
+    echo "${notInstallingLatestNvidiaDrivers}"
 elif [ ${installLatestNvidiaDrivers} = "yes" ]; then
         setupLatestNvidiaDrivers
     else
@@ -743,7 +795,7 @@ elif [ ${installLatestNvidiaDrivers} = "yes" ]; then
         exit 2
 fi
 if [ ${installOpenSourceDrivers} = "no" ]; then
-    echo "${notInstallingOpenSourceDrivers}" && echo ""
+    echo "${notInstallingOpenSourceDrivers}"
 elif [ ${installOpenSourceDrivers} = "yes" ]; then
         setupOpenSourceDrivers
     else
@@ -751,17 +803,17 @@ elif [ ${installOpenSourceDrivers} = "yes" ]; then
         exit 2
 fi
 if [ ${repository} = "nonfree" ]; then
-	if [ ${runSystemReadiness} = "no" ]; then
-		echo "${notRunningSystemReadiness}" && echo ""
-	elif [ ${runSystemReadiness} = "yes" ]; then
-		    systemReadiness
-		else
-		    echo "${invalidConfig}"
-		    exit 2
-	fi
+    if [ ${runSystemReadiness} = "no" ]; then
+        echo "${notRunningSystemReadiness}"
+    elif [ ${runSystemReadiness} = "yes" ]; then
+            systemReadiness
+        else
+            echo "${invalidConfig}"
+            exit 2
+    fi
 fi
 if [ ${createSwapFile} = "no" ]; then
-    echo "${notCreatingSwapFile}" && echo ""
+    echo "${notCreatingSwapFile}"
 elif [ ${createSwapFile} = "yes" ]; then
         setupSwapFile
     else
@@ -769,16 +821,15 @@ elif [ ${createSwapFile} = "yes" ]; then
         exit 2
 fi
 if [ ${applyDebianFixes} = "no" ]; then
-    echo "${notApplyingDebianFixes}" && echo ""
+    echo "${notApplyingDebianFixes}"
 elif [ ${applyDebianFixes} = "yes" ]; then
         setupDebianFixes
     else
         echo "${invalidConfig}"
         exit 2
 fi
-
 if [ ${configureVirtualization} = "no" ]; then
-    echo "${notSettingUpVirtualization}" && echo ""
+    echo "${notSettingUpVirtualization}"
 elif [ ${configureVirtualization} = "yes" ]; then
         setupVirtualization
     else
