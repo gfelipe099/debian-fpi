@@ -13,7 +13,7 @@ You explicitly need to:
 ## How to use
 With a recent update now it requires two arguments to run:  
 **language** and **repository**
-  - For **language** there are two options:  
+  - For **language** there are three options:  
     - `es`, `en` or `fr`  
     
     [Spanish (Spain), English (US) and Français (France) respectively]  
