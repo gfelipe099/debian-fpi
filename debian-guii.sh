@@ -110,7 +110,7 @@ root() {
 setupDesktopEnviroment() {
     echo "${installingDesktopEnv}"
     if [ ${desktopEnvToInstall} = "gnome" ]; then
-        echo "apt-get install -yy gdm3* > /dev/null 2>&1" && echo ""
+        apt-get install -yy gdm3* > /dev/null 2>&1 && echo ""
     elif [ ${desktopEnvToInstall} = "kde" ]; then
         apt-get install -yy sddm* > /dev/null 2>&1 && apt-get purge -yy discover plasma-discover kinfocenter xterm --autoremove > /dev/null 2>&1 && echo ""
     elif [ ${desktopEnvToInstall} = "xfce" ]; then
