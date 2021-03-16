@@ -3,7 +3,7 @@
 # Created and developed by Liam Powell (gfelipe099)
 # pkgs.conf file
 # A packages configuration file for the script to use
-# based on user-based choice
+# based on user's choice
 #
 
 # Desktop Environment
@@ -40,7 +40,7 @@ gsPkgs=""
 #
 # Multimedia Software
 # Default packages: gimp
-# Default packages (nonfree): spotify client discord
+# Default packages (nonfree): spotify-client discord
 msPkgs=""
 
 #
