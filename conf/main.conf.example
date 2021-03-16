@@ -10,6 +10,7 @@ installDesktopEnviroment=yes
 desktopEnviroment=gnome
 
 # Applications Settings
+installDesktopEnviroment=yes
 installBasicSystemTools=yes
 installBasicTools=yes
 installWebBrowser=yes
