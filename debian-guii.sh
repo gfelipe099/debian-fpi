@@ -104,6 +104,8 @@ root() {
             exit 0
         elif [ ${input} = "no" ]; then
             exit 0
+            else
+                setupDesktopEnviroment
         fi && echo "" && echo ""
 }
 
@@ -124,4 +126,3 @@ setupDesktopEnviroment() {
 # Initialize script functions in this order
 welcome
 root
-setupDesktopEnviroment
