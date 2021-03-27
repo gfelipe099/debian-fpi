@@ -58,3 +58,44 @@ void on_Settings_btn_select(GtkWidget *menuitem, app_widgets *widgets) {
 void on_window_main_destroy() {
     gtk_main_quit();
 }
+
+//////// Buttons ////////
+
+//// GNOME ////
+void on_Install_basic_tools_gnome_clicked() {
+    system("sh -c 'apt-get install -y nautilus gnome-terminal gedit clamtk-gnome'");
+}
+
+void on_Install_system_tools_gnome_clicked() {
+    system("sh -c 'apt-get install -y selinux-basics selinux-policy-default gufw clamtk gcc make firmware-linux-free curl linux-headers-$(uname -r) gdebi fonts-noto-color-emoji'");
+}
+
+void on_Install_extras_gnome_clicked() {
+    system("sh -c 'apt-get install -y firefox-esr libreoffice gimp'");
+}
+
+//// KDE ////
+void on_Install_basic_tools_kde_clicked() {
+    system("sh -c 'apt-get install -y plasma-nm dolphin konsole kate kwin-{x11,wayland}'");
+}
+
+void on_Install_system_tools_kde_clicked() {
+    system("sh -c 'apt-get install -y selinux-basics selinux-policy-default gufw clamtk gcc make firmware-linux-free curl linux-headers-$(uname -r) gdebi fonts-noto-color-emoji'");
+}
+
+void on_Install_extras_kde_clicked() {
+    system("sh -c 'apt-get install -y firefox-esr libreoffice gimp'");
+}
+
+//// XFCE ////
+void on_Install_basic_tools_xfce_clicked() {
+    system("sh -c 'apt-get install -y thunar mousepad ristretto xfce4-{screenshooter,terminal,goodies,themes}'");
+}
+
+void on_Install_system_tools_xfce_clicked() {
+    system("sh -c 'apt-get install -y selinux-basics selinux-policy-default gufw clamtk gcc make firmware-linux-free curl linux-headers-$(uname -r) gdebi fonts-noto-color-emoji'");
+}
+
+void on_Install_extras_xfce_clicked() {
+    system("sh -c 'apt-get install -y firefox-esr libreoffice gimp'");
+}
