@@ -121,64 +121,6 @@ Author: Liam Powell (gfelipe099)
               <object class="GtkMenuItem">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_Edit</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <object class="GtkImageMenuItem">
-                        <property name="label">gtk-cut</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem">
-                        <property name="label">gtk-copy</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem">
-                        <property name="label">gtk-paste</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem">
-                        <property name="label">gtk-delete</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuItem">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">_View</property>
-                <property name="use_underline">True</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuItem">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="label" translatable="yes">_Help</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
@@ -218,15 +160,15 @@ Author: Liam Powell (gfelipe099)
           <object class="GtkGrid">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="row_spacing">5</property>
             <property name="column_spacing">20</property>
             <property name="row_homogeneous">True</property>
             <property name="column_homogeneous">True</property>
             <child>
-              <object class="GtkLabel" id="Base_setup">
+              <object class="GtkLabel" id="Gnome_setup">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="xpad">25</property>
-                <property name="label" translatable="yes">Basic Setup</property>
+                <property name="label" translatable="yes">GNOME Setup</property>
                 <property name="track_visited_links">False</property>
               </object>
               <packing>
@@ -235,11 +177,10 @@ Author: Liam Powell (gfelipe099)
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="System_tools">
+              <object class="GtkLabel" id="Kde_setup">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="xpad">25</property>
-                <property name="label" translatable="yes">System Tools</property>
+                <property name="label" translatable="yes">KDE Setup</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -247,11 +188,10 @@ Author: Liam Powell (gfelipe099)
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="Extras">
+              <object class="GtkLabel" id="Xfce_setup">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="xpad">25</property>
-                <property name="label" translatable="yes">Extras</property>
+                <property name="label" translatable="yes">XFCE Setup</property>
               </object>
               <packing>
                 <property name="left_attach">2</property>
@@ -259,11 +199,12 @@ Author: Liam Powell (gfelipe099)
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="Install_basic_tools">
+              <object class="GtkButton" id="Install_basic_tools_gnome">
                 <property name="label" translatable="yes">Install Basic Tools</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_Install_basic_tools_gnome_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">0</property>
@@ -271,8 +212,34 @@ Author: Liam Powell (gfelipe099)
               </packing>
             </child>
             <child>
-              <object class="GtkButton">
-                <property name="label" translatable="yes">button</property>
+              <object class="GtkButton" id="Install_system_tools_gnome">
+                <property name="label" translatable="yes">Install System Tools</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_Install_system_tools_gnome_clicked" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="Install_extras_gnome">
+                <property name="label" translatable="yes">Install Extras</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_Install_extras_gnome_clicked" swapped="no"/>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="Install_basic_tools_kde">
+                <property name="label" translatable="yes">Install Basic Tools</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -283,8 +250,32 @@ Author: Liam Powell (gfelipe099)
               </packing>
             </child>
             <child>
-              <object class="GtkButton">
-                <property name="label" translatable="yes">button</property>
+              <object class="GtkButton" id="Install_system_tools_kde">
+                <property name="label" translatable="yes">Install System Tools</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="Install_extras_kde">
+                <property name="label" translatable="yes">Install Extras</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="Install_basic_tools_xfce">
+                <property name="label" translatable="yes">Install Basic Tools</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -292,6 +283,30 @@ Author: Liam Powell (gfelipe099)
               <packing>
                 <property name="left_attach">2</property>
                 <property name="top_attach">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="Install_system_tools_xfce">
+                <property name="label" translatable="yes">Install System Tools</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">2</property>
+                <property name="top_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="Install_extras_xfce">
+                <property name="label" translatable="yes">Install Extras</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">2</property>
+                <property name="top_attach">3</property>
               </packing>
             </child>
           </object>
