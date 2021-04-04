@@ -14,9 +14,9 @@ int main(int argc, char *argv[]) {
 
     gtk_init(&argc, &argv);
 
-    root = gtk_builder_new_from_file("glade/root.glade");
-    about = gtk_builder_new_from_file("glade/about.glade");
-    settings = gtk_builder_new_from_file("glade/settings.glade");
+    root = gtk_builder_new_from_file("gui/root.glade");
+    about = gtk_builder_new_from_file("gui/about.glade");
+    settings = gtk_builder_new_from_file("gui/settings.glade");
     window = GTK_WIDGET(gtk_builder_get_object(root, "root"));
 
     widgets->about_dialog_box = GTK_WIDGET(gtk_builder_get_object(about, "about"));
