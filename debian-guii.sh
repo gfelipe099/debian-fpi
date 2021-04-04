@@ -14,7 +14,7 @@ desktopEnvToInstall="${2}"
 if [ -z ${language} ] || [ -z ${desktopEnvToInstall} ]; then
     echo "Missing required argument: [language] and/or [desktopEnvToInstall]"
     echo "You must specify which language to use and what DE to install." && echo "" && echo ""
-    echo "Usage: debian-fpi [language] [desktopEnviroment]" && echo ""
+    echo "Usage: debian-guii [language] [desktopEnviroment]" && echo ""
     echo "Options:"
     echo "  Language:"
     echo "    en"
@@ -24,7 +24,7 @@ if [ -z ${language} ] || [ -z ${desktopEnvToInstall} ]; then
     echo "    gnome"
     echo "    kde"
     echo "    xfce" && echo ""
-    echo "Example: sh debian-fpi.sh en xfce" && echo ""
+    echo "Example: sh ${0} en xfce" && echo ""
     exit 1
 fi
 
@@ -34,7 +34,7 @@ if [ ${language} = "en" ]; then
     mustExecAsRoot="This script must be executed as root"
     PkgManagerNotFound="APT Package Manager was not found in this system, execution aborted."
     NotUsingDebian="You must be using Debian GNU/Linux 10 (buster) to execute this script."
-    welcomeToDebianGuii="Welcome to the Debian GUI-Installer tool or Debian-GUII (utility from Debian-FPI)"
+    welcomeToDebianGuii="Welcome to the Debian GUI-Installer tool or Debian-GUII (utility from debian-guii)"
     createdBy="Created by Liam Powell (gfelipe099)"
     kernelVersion="Kernel version in use:"
     startPrompt="--> Do you want to start the script?: (Default: no): "
@@ -48,7 +48,7 @@ elif [ ${language} = "es" ]; then
     mustExecAsRoot="Este script debe ser ejecutado como root"
     PkgManagerNotFound="El administrador de paquetes APT no fue encontrado en este sistema, ejecución abortada."
     NotUsingDebian="Debes estar usando Debian GNU/Linux 10 (buster) para ejecutar este script."
-    welcomeToDebianGuii="¡Bienvenido a la herramienta instaladora de la GUI o Debian-GUII (utilidad de Debian-FPI)"
+    welcomeToDebianGuii="¡Bienvenido a la herramienta instaladora de la GUI o Debian-GUII (utilidad de debian-guii)"
     createdBy="Creado por Liam Powell (gfelipe099)"
     kernelVersion="Versión del núcleo en uso:"
     startPrompt="--> Presiona cualquier tecla para empezar... (Por defecto: no): "
