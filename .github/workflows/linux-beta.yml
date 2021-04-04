@@ -1,19 +1,15 @@
 # Based on: VSCodium's linux workflow
 
 # Source: https://raw.githubusercontent.com/VSCodium/vscodium/master/.github/workflows/linux.yml
-
-
-
-name: linux
-
-
+name: linux-beta
 
 on:
   schedule:
     - cron: '0 0 1 * *'
   push:
   pull_request:
-    branches: [ testing ]
+    branches:
+      - testing
 
 jobs:
   linux:
@@ -25,10 +21,10 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install git
-        run: npm install -g git
+        run: npm install git
 
       - name: Clone debian-fpi testing repo
-        run: git clone --testing https://github.com/gfelipe099/debian-fpi
+        run: git clone --branch testing https://github.com/gfelipe099/debian-fpi
 
       - name: Compile debian-fpi
         run: make
@@ -40,7 +36,6 @@ jobs:
       - name: Pre-release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ env.testing }}
           file: |
             ./debian-guii.sh
             ./debian-fpi
