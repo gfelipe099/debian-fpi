@@ -12,14 +12,14 @@ MAINOBJ=src/main.o
 GUIOBJ=src/gui.o
 
 all: ${MAINOBJ} ${GUIOBJ}
-        glib-compile-resources --target=src/gui.c --generate-source gui/gresources.xml
-        ${CC} -o ${TARGET} ${MAINOBJ} ${GUIOBJ} ${PTHREAD} ${GTKLIB}
+	glib-compile-resources --target=src/gui.c --generate-source gui/gresources.xml
+	${CC} -o ${TARGET} ${MAINOBJ} ${GUIOBJ} ${PTHREAD} ${GTKLIB}
 
 src/main.o: src/main.c
-        ${CC} -c ${CCFLAGS} src/main.c ${GTKLIB} -o src/main.o
+	${CC} -c ${CCFLAGS} src/main.c ${GTKLIB} -o src/main.o
 
 src/gui.o: src/gui.c
-        ${CC} -c ${GTKLIB} src/gui.c -o src/gui.o
+	${CC} -c ${GTKLIB} src/gui.c -o src/gui.o
 
 clean:
-        rm -rf src/*.o src/gui.c ${TARGET}
+	rm -rf src/*.o src/gui.c ${TARGET}
