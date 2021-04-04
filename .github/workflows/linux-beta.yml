@@ -29,12 +29,8 @@ jobs:
       - name: Compile debian-fpi
         run: make
 
-      - name: Build
-        env:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Pre-release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-pre-release@v1
         with:
           file: |
             ./debian-guii.sh
