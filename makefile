@@ -12,7 +12,6 @@ MAINOBJ=src/main.o
 GUIOBJ=src/gui.o
 
 all: ${MAINOBJ} ${GUIOBJ}
-	glib-compile-resources --target=src/gui.c --generate-source gui/gresources.xml
 	${CC} -o ${TARGET} ${MAINOBJ} ${GUIOBJ} ${PTHREAD} ${GTKLIB}
 
 src/main.o: src/main.c
@@ -20,6 +19,9 @@ src/main.o: src/main.c
 
 src/gui.o: src/gui.c
 	${CC} -c ${GTKLIB} src/gui.c -o src/gui.o
+
+src/gui.c:
+	glib-compile-resources --target=src/gui.c --generate-source gui/gresources.xml
 
 clean:
 	rm -rf src/*.o src/gui.c ${TARGET}
